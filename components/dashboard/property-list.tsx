@@ -70,15 +70,28 @@ export function PropertyList({ properties }: PropertyListProps) {
     }
   }
 
-  const formatPrice = (price: number, currency: string) => {
-    if (currency === "UGX") {
-      return `UGX ${price.toLocaleString()}`
+  const formatPrice = (price: number | undefined, currency: string | undefined) => {
+    // Handle undefined values
+    const safePrice = price || 0
+    const safeCurrency = currency || 'USD'
+
+    try {
+      if (safeCurrency === "UGX") {
+        return `UGX ${safePrice.toLocaleString()}`
+      }
+      return `$${safePrice.toLocaleString()}`
+    } catch (error) {
+      // Fallback if toLocaleString fails
+      console.error('Error formatting price:', error)
+      return safeCurrency === "UGX" ? `UGX ${safePrice}` : `$${safePrice}`
     }
-    return `$${price.toLocaleString()}`
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (status: string | undefined) => {
+    // Handle undefined status
+    const safeStatus = status || 'draft'
+
+    switch (safeStatus) {
       case "active":
         return <Badge className="bg-green-500">Active</Badge>
       case "draft":
@@ -86,7 +99,7 @@ export function PropertyList({ properties }: PropertyListProps) {
       case "archived":
         return <Badge variant="secondary">Archived</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{safeStatus}</Badge>
     }
   }
 
