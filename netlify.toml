@@ -1,5 +1,5 @@
 [build]
-  command = "npm install critters postcss autoprefixer --legacy-peer-deps && node check-ui-components.js && node simplify-css.js && node netlify-build.js && npm run build"
+  command = "npm install critters postcss autoprefixer --legacy-peer-deps && node check-ui-components.js && node install-typescript.js && node simplify-css.js && node netlify-build.js && npm run build"
   publish = ".next"
 
 [build.environment]
