@@ -48,57 +48,53 @@ A premium real estate website for showcasing properties in Kampala, Uganda.
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deployment to Netlify
+## Deployment to Vercel
 
-### Option 1: Deploy with Netlify CLI
+### Option 1: Deploy with Vercel CLI
 
-1. Install the Netlify CLI:
+1. Install the Vercel CLI:
    ```bash
-   npm install -g netlify-cli
+   npm install -g vercel
    ```
 
-2. Login to Netlify:
+2. Login to Vercel:
    ```bash
-   netlify login
+   vercel login
    ```
 
-3. Initialize a new Netlify site:
+3. Deploy the site:
    ```bash
-   netlify init
+   vercel
    ```
 
-4. Set up environment variables:
-   ```bash
-   netlify env:set NEXT_PUBLIC_SUPABASE_URL your_supabase_url_here
-   netlify env:set NEXT_PUBLIC_SUPABASE_ANON_KEY your_supabase_anon_key_here
-   netlify env:set SUPABASE_URL your_supabase_url_here
-   netlify env:set SUPABASE_SERVICE_ROLE_KEY your_supabase_service_role_key_here
-   ```
-
-5. Deploy the site:
-   ```bash
-   netlify deploy --prod
-   ```
-
-### Option 2: Deploy via Netlify UI
-
-1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket).
-
-2. Log in to [Netlify](https://app.netlify.com/).
-
-3. Click "New site from Git" and select your repository.
-
-4. Configure the build settings:
-   - Build command: `node netlify-build.js && npm run build`
-   - Publish directory: `.next`
-
-5. Add the required environment variables in the site settings:
+4. Follow the prompts to set up your project. When asked about environment variables, add:
    - NEXT_PUBLIC_SUPABASE_URL
    - NEXT_PUBLIC_SUPABASE_ANON_KEY
    - SUPABASE_URL
    - SUPABASE_SERVICE_ROLE_KEY
 
-6. Deploy the site.
+5. For production deployment:
+   ```bash
+   vercel --prod
+   ```
+
+### Option 2: Deploy via Vercel UI
+
+1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket).
+
+2. Log in to [Vercel](https://vercel.com/).
+
+3. Click "New Project" and import your repository.
+
+4. Vercel will automatically detect that it's a Next.js project and configure the build settings.
+
+5. Add the required environment variables in the project settings:
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - SUPABASE_URL
+   - SUPABASE_SERVICE_ROLE_KEY
+
+6. Click "Deploy" and Vercel will build and deploy your site.
 
 ## Supabase Setup
 
