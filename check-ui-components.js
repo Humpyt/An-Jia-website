@@ -28,18 +28,18 @@ if (!fs.existsSync(uiComponentsDir)) {
 
 // Check each essential component
 essentialComponents.forEach(component => {
-  const componentName = component.endsWith('.ts') || component.endsWith('.tsx') 
-    ? component 
+  const componentName = component.endsWith('.ts') || component.endsWith('.tsx')
+    ? component
     : `${component}.tsx`;
-  
+
   const componentPath = path.join(uiComponentsDir, componentName);
-  
+
   if (!fs.existsSync(componentPath)) {
     console.log(`Creating placeholder for missing component: ${componentName}`);
-    
+
     // Create a simple placeholder component
     let placeholderContent;
-    
+
     if (component === 'button') {
       placeholderContent = `"use client"
 
@@ -339,13 +339,21 @@ Progress.displayName = "Progress"
 export { Progress }
 `;
     } else if (component === 'use-toast') {
-      placeholderContent = `// Simplified toast hook
+      placeholderContent = `"use client"
+
+// Simplified toast hook
 export const useToast = () => {
   return {
     toast: ({ title, description, variant }) => {
       console.log(\`Toast: \${title} - \${description} (\${variant})\`);
     }
   };
+};
+
+// Export toast function directly for components that import it
+export const toast = ({ title, description, variant }) => {
+  console.log(\`Toast: \${title} - \${description} (\${variant})\`);
+  return { id: "1", dismiss: () => {}, update: () => {} };
 };
 `;
     } else {
@@ -359,7 +367,7 @@ export const ${component.charAt(0).toUpperCase() + component.slice(1)} = (props)
 }
 `;
     }
-    
+
     fs.writeFileSync(componentPath, placeholderContent);
   } else {
     console.log(`Component exists: ${componentName}`);

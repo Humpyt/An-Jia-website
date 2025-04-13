@@ -116,26 +116,63 @@ const redirectsContent = `# Netlify redirects
 fs.writeFileSync(redirectsPath, redirectsContent);
 console.log('Created Netlify _redirects file');
 
-// Check if critters is installed
-try {
-  require.resolve('critters');
-  console.log('✅ Critters package is already installed');
-} catch (error) {
-  console.log('⚠️ Critters package is not installed. Installing now...');
-  try {
-    execSync('npm install critters --no-save', { stdio: 'inherit' });
-    console.log('✅ Critters installed successfully');
-  } catch (installError) {
-    console.error('❌ Failed to install critters. Disabling CSS optimization in next.config.mjs');
+// Check if required packages are installed
+const requiredPackages = ['critters', 'tailwindcss', 'autoprefixer', 'postcss', 'tailwindcss-animate'];
 
-    // Try to modify next.config.mjs to disable optimizeCss
-    const nextConfigPath = path.join(__dirname, 'next.config.mjs');
-    if (fs.existsSync(nextConfigPath)) {
-      let nextConfig = fs.readFileSync(nextConfigPath, 'utf8');
-      nextConfig = nextConfig.replace(/optimizeCss:\s*true/, 'optimizeCss: false');
-      fs.writeFileSync(nextConfigPath, nextConfig);
-      console.log('✅ Disabled CSS optimization in next.config.mjs');
+for (const pkg of requiredPackages) {
+  try {
+    require.resolve(pkg);
+    console.log(`✅ ${pkg} package is already installed`);
+  } catch (error) {
+    console.log(`⚠️ ${pkg} package is not installed. Installing now...`);
+    try {
+      execSync(`npm install ${pkg} --legacy-peer-deps --no-save`, { stdio: 'inherit' });
+      console.log(`✅ ${pkg} installed successfully`);
+    } catch (installError) {
+      console.error(`❌ Failed to install ${pkg}. This may cause build issues.`);
+
+      if (pkg === 'critters') {
+        // Try to modify next.config.mjs to disable optimizeCss
+        const nextConfigPath = path.join(__dirname, 'next.config.mjs');
+        if (fs.existsSync(nextConfigPath)) {
+          let nextConfig = fs.readFileSync(nextConfigPath, 'utf8');
+          nextConfig = nextConfig.replace(/optimizeCss:\s*true/, 'optimizeCss: false');
+          fs.writeFileSync(nextConfigPath, nextConfig);
+          console.log('✅ Disabled CSS optimization in next.config.mjs');
+        }
+      }
     }
+  }
+}
+
+// Ensure we have both JS and TS versions of config files
+const configFiles = [
+  { ts: 'tailwind.config.ts', js: 'tailwind.config.js' },
+  { ts: 'postcss.config.mjs', js: 'postcss.config.js' }
+];
+
+for (const config of configFiles) {
+  const tsPath = path.join(__dirname, config.ts);
+  const jsPath = path.join(__dirname, config.js);
+
+  if (!fs.existsSync(jsPath) && fs.existsSync(tsPath)) {
+    console.log(`Creating JS version of ${config.ts} for better compatibility...`);
+    const content = fs.readFileSync(tsPath, 'utf8');
+    let jsContent;
+
+    if (config.ts === 'tailwind.config.ts') {
+      jsContent = content
+        .replace(/import[^;]*;\s*/, '')
+        .replace('export default', 'module.exports =')
+        .replace(/\s*satisfies Config/, '');
+    } else {
+      jsContent = content
+        .replace(/export default/, 'module.exports =')
+        .replace(/import[^;]*;\s*/, '');
+    }
+
+    fs.writeFileSync(jsPath, jsContent);
+    console.log(`✅ Created ${config.js}`);
   }
 }
 
