@@ -46,6 +46,9 @@ const nextConfig = {
     parallelServerCompiles: true,
   },
 
+  // Disable CSS modules to avoid tailwindcss dependency issues
+  cssModules: false,
+
   // Configure webpack to properly resolve path aliases
   webpack: (config) => {
     config.resolve.alias = {
