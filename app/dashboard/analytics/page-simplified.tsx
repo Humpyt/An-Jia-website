@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 export const dynamicParams = true
 export const revalidate = 0
 
-export default function AnalyticsPage() {
+export default function AnalyticsPageSimplified() {
   return (
     <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between">

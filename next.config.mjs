@@ -35,6 +35,11 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+
+  // Exclude specific pages from static generation
+  excludeStaticRoutes: [
+    '/dashboard/analytics',
+  ],
 }
 
 export default nextConfig
