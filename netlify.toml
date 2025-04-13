@@ -1,5 +1,5 @@
 [build]
-  command = "npm install critters --legacy-peer-deps && node netlify-build.js && npm run build"
+  command = "npm install critters --legacy-peer-deps && node check-ui-components.js && node netlify-build.js && npm run build"
   publish = ".next"
 
 [build.environment]
