@@ -2,6 +2,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PropertyViewsChart } from "@/components/dashboard/property-views-chart"
+import { InquiriesChart } from "@/components/dashboard/inquiries-chart"
+import { PopularPropertiesChart } from "@/components/dashboard/popular-properties-chart"
+import { LocationsChart } from "@/components/dashboard/locations-chart"
 
 export default function AnalyticsSimplifiedClient() {
   return (
@@ -24,9 +28,7 @@ export default function AnalyticsSimplifiedClient() {
                 <CardDescription>Daily property views over the last 30 days</CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
-                <div className="h-[300px] flex items-center justify-center bg-muted/20 rounded-md">
-                  <p className="text-muted-foreground">Property views chart will appear here</p>
-                </div>
+                <PropertyViewsChart />
               </CardContent>
             </Card>
             <Card className="col-span-1">
@@ -35,13 +37,30 @@ export default function AnalyticsSimplifiedClient() {
                 <CardDescription>Inquiries received over the last 30 days</CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
-                <div className="h-[300px] flex items-center justify-center bg-muted/20 rounded-md">
-                  <p className="text-muted-foreground">Inquiries chart will appear here</p>
-                </div>
+                <InquiriesChart />
               </CardContent>
             </Card>
           </div>
-          {/* Rest of the component implementation */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Popular Properties</CardTitle>
+                <CardDescription>Most viewed properties in the last 30 days</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <PopularPropertiesChart />
+              </CardContent>
+            </Card>
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Locations</CardTitle>
+                <CardDescription>Property distribution by location</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <LocationsChart />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
