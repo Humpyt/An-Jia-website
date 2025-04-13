@@ -7,6 +7,11 @@ import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { PropertyActivity } from "@/components/dashboard/property-activity"
 import { getDashboardStats } from "@/app/actions/dashboard"
 
+// Force dynamic rendering to prevent prerendering errors
+export const dynamic = "force-dynamic"
+export const dynamicParams = true
+export const revalidate = 0
+
 export default async function DashboardPage() {
   const stats = await getDashboardStats()
 
