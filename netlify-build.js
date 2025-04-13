@@ -1,6 +1,7 @@
 // Netlify pre-build script to handle API routes and environment variables for production deployment
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 console.log('Running Netlify pre-build script...');
 
@@ -114,5 +115,28 @@ const redirectsContent = `# Netlify redirects
 
 fs.writeFileSync(redirectsPath, redirectsContent);
 console.log('Created Netlify _redirects file');
+
+// Check if critters is installed
+try {
+  require.resolve('critters');
+  console.log('✅ Critters package is already installed');
+} catch (error) {
+  console.log('⚠️ Critters package is not installed. Installing now...');
+  try {
+    execSync('npm install critters --no-save', { stdio: 'inherit' });
+    console.log('✅ Critters installed successfully');
+  } catch (installError) {
+    console.error('❌ Failed to install critters. Disabling CSS optimization in next.config.mjs');
+
+    // Try to modify next.config.mjs to disable optimizeCss
+    const nextConfigPath = path.join(__dirname, 'next.config.mjs');
+    if (fs.existsSync(nextConfigPath)) {
+      let nextConfig = fs.readFileSync(nextConfigPath, 'utf8');
+      nextConfig = nextConfig.replace(/optimizeCss:\s*true/, 'optimizeCss: false');
+      fs.writeFileSync(nextConfigPath, nextConfig);
+      console.log('✅ Disabled CSS optimization in next.config.mjs');
+    }
+  }
+}
 
 console.log('Netlify pre-build script completed');

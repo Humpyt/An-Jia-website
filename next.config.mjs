@@ -32,7 +32,8 @@ const nextConfig = {
   },
   // Enable page caching and performance optimizations
   experimental: {
-    optimizeCss: true,
+    // Disable optimizeCss to avoid critters dependency issues
+    optimizeCss: false,
     scrollRestoration: true,
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
