@@ -72,16 +72,22 @@ export function PropertyList({ properties }: PropertyListProps) {
 
   const formatPrice = (price: number | undefined, currency: string | undefined) => {
     // Handle undefined values
-    const safePrice = price || 0
+    const safePrice = typeof price === 'number' ? price : 0
     const safeCurrency = currency || 'USD'
 
     try {
-      if (safeCurrency === "UGX") {
-        return `UGX ${safePrice.toLocaleString()}`
+      // Ensure we're working with a number before calling toLocaleString
+      const numericPrice = Number(safePrice)
+      if (isNaN(numericPrice)) {
+        throw new Error('Invalid price value')
       }
-      return `$${safePrice.toLocaleString()}`
+
+      if (safeCurrency === "UGX") {
+        return `UGX ${numericPrice.toLocaleString()}`
+      }
+      return `$${numericPrice.toLocaleString()}`
     } catch (error) {
-      // Fallback if toLocaleString fails
+      // Fallback if anything goes wrong with number formatting
       console.error('Error formatting price:', error)
       return safeCurrency === "UGX" ? `UGX ${safePrice}` : `$${safePrice}`
     }
