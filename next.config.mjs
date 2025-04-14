@@ -9,10 +9,7 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-    formats: ['image/webp'],
-    minimumCacheTTL: 60,
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    unoptimized: true, // Enable static exports
   },
   // Strict mode helps catch bugs early
   reactStrictMode: true,
@@ -27,19 +24,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Enable page caching and performance optimizations
-  experimental: {
-    optimizeCss: true,
-    scrollRestoration: true,
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
-  },
-
-  // Exclude specific pages from static generation
-  excludeStaticRoutes: [
-    '/dashboard/analytics',
-  ],
+  // Enable static exports
+  output: 'export',
 }
 
 export default nextConfig

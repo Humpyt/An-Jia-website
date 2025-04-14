@@ -1,9 +1,10 @@
 {
   "buildCommand": "next build",
-  "devCommand": "next dev",
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "npm install",
   "framework": "nextjs",
+  "devCommand": "next dev",
   "outputDirectory": ".next",
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",

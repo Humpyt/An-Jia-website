@@ -1,16 +1,19 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Footer } from "@/components/footer"
+import { useLanguage } from "@/components/language-switcher"
 
 const neighborhoods = [
   {
     id: "kololo",
     name: "Kololo",
     description: "An upscale residential area known for embassies, luxury homes, and proximity to the city center.",
-    image: "/placeholder.svg?height=300&width=500",
+    image: "/images/03/WhatsApp Image 2025-04-09 at 11.36.23 AM.jpeg",
     properties: 24,
     averagePrice: 1200,
   },
@@ -18,7 +21,7 @@ const neighborhoods = [
     id: "naguru",
     name: "Naguru",
     description: "A prestigious neighborhood with beautiful views, modern apartments, and a growing expat community.",
-    image: "/placeholder.svg?height=300&width=500",
+    image: "/images/03/WhatsApp Image 2025-04-09 at 11.36.25 AM (1).jpeg",
     properties: 18,
     averagePrice: 950,
   },
@@ -27,7 +30,7 @@ const neighborhoods = [
     name: "Bukoto",
     description:
       "A vibrant area with a mix of residential and commercial properties, popular among young professionals.",
-    image: "/placeholder.svg?height=300&width=500",
+    image: "/images/03/WhatsApp Image 2025-04-09 at 11.36.26 AM.jpeg",
     properties: 15,
     averagePrice: 800,
   },
@@ -35,7 +38,7 @@ const neighborhoods = [
     id: "muyenga",
     name: "Muyenga",
     description: "Known as 'Tank Hill', offering panoramic views of Lake Victoria and upscale housing options.",
-    image: "/placeholder.svg?height=300&width=500",
+    image: "/images/04/WhatsApp Image 2025-04-09 at 11.37.57 AM.jpeg",
     properties: 20,
     averagePrice: 1100,
   },
@@ -43,7 +46,7 @@ const neighborhoods = [
     id: "ntinda",
     name: "Ntinda",
     description: "A rapidly developing suburb with good amenities, shopping centers, and affordable housing.",
-    image: "/placeholder.svg?height=300&width=500",
+    image: "/images/04/WhatsApp Image 2025-04-09 at 11.37.58 AM (1).jpeg",
     properties: 22,
     averagePrice: 700,
   },
@@ -51,13 +54,15 @@ const neighborhoods = [
     id: "bugolobi",
     name: "Bugolobi",
     description: "A quiet, upscale residential area with good security, close to the industrial area.",
-    image: "/placeholder.svg?height=300&width=500",
+    image: "/images/05/WhatsApp Image 2025-04-09 at 11.40.23 AM.jpeg",
     properties: 16,
     averagePrice: 900,
   },
 ]
 
 export default function NeighborhoodsPage() {
+  const { translate } = useLanguage()
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/50">
@@ -67,43 +72,26 @@ export default function NeighborhoodsPage() {
           </Link>
           <div className="hidden md:flex items-center gap-6">
             <Link href="/properties" className="text-sm font-medium hover:text-rose-500 transition-colors">
-              Properties
+              {translate("properties")}
             </Link>
             <Link href="/neighborhoods" className="text-sm font-medium text-rose-500">
-              Neighborhoods
+              {translate("neighborhoods")}
             </Link>
             <Link href="/about" className="text-sm font-medium hover:text-rose-500 transition-colors">
-              About
+              {translate("about")}
             </Link>
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
             <Button variant="ghost" size="sm" className="hidden md:flex hover:bg-rose-50 hover:text-rose-500" asChild>
-              <Link href="/list-property">List your property</Link>
+              <Link href="/list-property">{translate("list_property")}</Link>
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="rounded-full border-neutral-200 shadow-sm gap-2 hidden md:flex hover:border-neutral-300"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-                <path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4" />
-                <path d="M13 13h4" />
-                <path d="M13 17h4" />
-                <path d="M9 13h.01" />
-                <path d="M9 17h.01" />
-              </svg>
-              Sign in
+              {translate("sign_in")}
             </Button>
           </div>
         </div>
@@ -112,10 +100,11 @@ export default function NeighborhoodsPage() {
         <section className="bg-rose-50 py-10 md:py-16">
           <div className="container">
             <div className="max-w-3xl">
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Kampala Neighborhoods</h1>
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+                {translate("discover_neighborhoods")}
+              </h1>
               <p className="mt-4 text-neutral-600">
-                Explore Kampala's diverse neighborhoods and find the perfect area for your next home. Each neighborhood
-                has its own unique character, amenities, and rental options.
+                {translate("neighborhoods_description")}
               </p>
             </div>
           </div>
@@ -134,17 +123,19 @@ export default function NeighborhoodsPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                     <div className="absolute bottom-0 left-0 p-4 text-white">
                       <h3 className="text-xl font-bold">{neighborhood.name}</h3>
-                      <p className="text-sm text-white/80">{neighborhood.properties} properties</p>
+                      <p className="text-sm text-white/80">{neighborhood.properties} {translate("properties")}</p>
                     </div>
                   </div>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-neutral-500">Average price</span>
+                      <span className="text-sm text-neutral-500">{translate("avg_price")}</span>
                       <span className="font-semibold">${neighborhood.averagePrice}/mo</span>
                     </div>
-                    <p className="text-sm text-neutral-600 mb-4">{neighborhood.description}</p>
+                    <p className="text-sm text-neutral-600 mb-4">
+                      {translate(`${neighborhood.id}_description`)}
+                    </p>
                     <Button asChild className="w-full bg-rose-500 hover:bg-rose-600 text-white">
-                      <Link href={`/neighborhoods/${neighborhood.id}`}>View Properties</Link>
+                      <Link href={`/neighborhoods/${neighborhood.id}`}>{translate("view_properties")}</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -156,21 +147,23 @@ export default function NeighborhoodsPage() {
           <div className="container">
             <div className="grid gap-8 md:grid-cols-2 items-center">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Find Your Perfect Location</h2>
+                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">{translate("find_perfect_location")}</h2>
                 <p className="mt-4 text-neutral-600">
-                  Not sure which neighborhood is right for you? Our local experts can help you find the perfect location
-                  based on your preferences, budget, and lifestyle.
+                  {translate("location_help_description")}
                 </p>
                 <div className="mt-6 flex flex-col sm:flex-row gap-4">
-                  <Button className="bg-rose-500 hover:bg-rose-600 text-white">Contact an Expert</Button>
-                  <Button variant="outline">Compare Neighborhoods</Button>
+                  <Button className="bg-rose-500 hover:bg-rose-600 text-white">
+                    {translate("contact_expert")}
+                  </Button>
+                  <Button variant="outline">{translate("compare_neighborhoods")}</Button>
                 </div>
               </div>
               <div className="relative aspect-video rounded-lg overflow-hidden">
-                <img
-                  src="/placeholder.svg?height=400&width=600"
+                <Image
+                  src="/images/04/WhatsApp Image 2025-04-09 at 11.37.58 AM (2).jpeg"
                   alt="Kampala skyline"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             </div>
