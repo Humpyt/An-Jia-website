@@ -9,7 +9,7 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-    unoptimized: true, // Enable static exports
+    unoptimized: true,
   },
   // Strict mode helps catch bugs early
   reactStrictMode: true,
@@ -23,9 +23,7 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  // Enable static exports
-  output: 'export',
+  }
 }
 
 export default nextConfig

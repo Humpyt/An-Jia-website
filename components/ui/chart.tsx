@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
+import { Bar, Area, Line } from "recharts"
 
 import { cn } from "@/lib/utils"
 
@@ -382,6 +383,63 @@ function getPayloadConfigFromPayload(
     console.error('Error in getPayloadConfigFromPayload:', error);
     return undefined;
   }
+}
+
+interface ChartProps {
+  data: any[]
+  index: string
+  categories: string[]
+  colors: string[]
+  valueFormatter: (value: number) => string
+  className?: string
+}
+
+export function BarChart({ data, index, categories, colors, valueFormatter, className }: ChartProps) {
+  return (
+    <div className={className}>
+      {/* Placeholder for chart implementation */}
+      <div className="grid grid-cols-1 gap-4">
+        {data.map((item, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <span className="text-sm">{item[index]}</span>
+            <span className="text-sm font-medium">{valueFormatter(item[categories[0]])}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function AreaChart({ data, index, categories, colors, valueFormatter, className }: ChartProps) {
+  return (
+    <div className={className}>
+      {/* Placeholder for chart implementation */}
+      <div className="grid grid-cols-1 gap-4">
+        {data.map((item, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <span className="text-sm">{item[index]}</span>
+            <span className="text-sm font-medium">{valueFormatter(item[categories[0]])}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function LineChart({ data, index, categories, colors, valueFormatter, className }: ChartProps) {
+  return (
+    <div className={className}>
+      {/* Placeholder for chart implementation */}
+      <div className="grid grid-cols-1 gap-4">
+        {data.map((item, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <span className="text-sm">{item[index]}</span>
+            <span className="text-sm font-medium">{valueFormatter(item[categories[0]])}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export {
