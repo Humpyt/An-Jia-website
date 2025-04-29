@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import "./theme-override.css"
+import './theme-override.css'
 import { LanguageProvider } from '@/components/language-switcher'
 
 export const metadata: Metadata = {

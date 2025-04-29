@@ -5,7 +5,8 @@ import { Footer } from "@/components/footer"
 import { NavLinks } from "@/components/nav-links"
 import { AuthButtons } from "@/components/auth-buttons"
 import { PropertiesContent } from "@/components/properties-content"
-import { getPropertiesWithFilters } from "@/app/actions/properties"
+// Import the WordPress properties action instead of the mock data one
+import { getPropertiesWithFilters } from "@/app/actions/wordpress-properties"
 
 export default async function PropertiesPage({
   searchParams,
@@ -29,21 +30,31 @@ export default async function PropertiesPage({
     : undefined
 
   // Fetch properties with filters
-  const properties = await getPropertiesWithFilters({
-    limit,
-    offset,
-    filters: {
-      location,
-      minPrice,
-      maxPrice,
-      bedrooms,
-      bathrooms,
-      amenities,
-    },
-  })
+  let properties = [];
+  let error = null;
+  
+  try {
+    console.log('Properties page: Fetching properties with filters');
+    properties = await getPropertiesWithFilters({
+      limit,
+      offset,
+      filters: {
+        location,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        amenities,
+      },
+    });
+    console.log(`Properties page: Fetched ${properties.length} properties`);
+  } catch (err: any) {
+    console.error('Error in properties page:', err);
+    error = err.message || 'Failed to fetch properties';
+  }
 
   // Format data to match what PropertiesContent expects
-  const propertiesData = { data: properties, error: null };
+  const propertiesData = { data: properties || [], error };
   
   return (
     <div className="flex min-h-screen flex-col">

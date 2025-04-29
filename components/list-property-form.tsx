@@ -10,20 +10,88 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { useLanguage } from "@/components/language-switcher"
 
+interface FormData {
+  title: string
+  description: string
+  propertyType: string
+  bedrooms: string
+  bathrooms: string
+  location: string
+  floor: string
+  units: string
+  price: string
+  currency: string
+  paymentTerms: string
+  amenities: string[]
+  ownerName: string
+  ownerContact: string
+  ownerEmail: string
+  ownerPhone: string
+  googlePin: string
+  isPremium: boolean
+  squareMeters: string
+  images: File[]
+}
+
 export function ListPropertyForm() {
   const [formStep, setFormStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { translate } = useLanguage()
+  
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    description: '',
+    propertyType: '',
+    bedrooms: '',
+    bathrooms: '',
+    location: '',
+    floor: '',
+    units: '',
+    price: '',
+    currency: 'UGX',
+    paymentTerms: 'Monthly',
+    amenities: [],
+    ownerName: '',
+    ownerContact: '',
+    ownerEmail: '',
+    ownerPhone: '',
+    googlePin: '',
+    isPremium: false,
+    squareMeters: '',
+    images: []
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const response = await fetch('/api/properties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          ownerContact: `Email: ${formData.ownerEmail}\nPhone: ${formData.ownerPhone}`
+        })
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create property')
+      }
+
       setFormStep(3) // Success state
-    }, 1500)
+    } catch (err: any) {
+      console.error('Error creating property:', err)
+      setError(err.message || 'Failed to create property')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -38,7 +106,11 @@ export function ListPropertyForm() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="property-type">{translate("property_type")}</Label>
-              <Select required>
+              <Select 
+                required
+                value={formData.propertyType}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, propertyType: value }))}
+              >
                 <SelectTrigger id="property-type" className="mt-1.5">
                   <SelectValue placeholder={translate("select_property_type")} />
                 </SelectTrigger>
@@ -54,7 +126,14 @@ export function ListPropertyForm() {
 
             <div>
               <Label htmlFor="title">{translate("property_title")}</Label>
-              <Input id="title" placeholder={translate("property_title_placeholder")} className="mt-1.5" required />
+              <Input 
+                id="title" 
+                placeholder={translate("property_title_placeholder")} 
+                className="mt-1.5" 
+                required 
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              />
             </div>
 
             <div>
@@ -64,13 +143,19 @@ export function ListPropertyForm() {
                 placeholder={translate("property_description_placeholder")}
                 className="mt-1.5 min-h-[100px]"
                 required
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="bedrooms">{translate("bedrooms")}</Label>
-                <Select required>
+                <Select 
+                  required
+                  value={formData.bedrooms}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, bedrooms: value }))}
+                >
                   <SelectTrigger id="bedrooms" className="mt-1.5">
                     <SelectValue placeholder={translate("select_bedrooms")} />
                   </SelectTrigger>
@@ -86,7 +171,11 @@ export function ListPropertyForm() {
 
               <div>
                 <Label htmlFor="bathrooms">{translate("bathrooms")}</Label>
-                <Select required>
+                <Select 
+                  required
+                  value={formData.bathrooms}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, bathrooms: value }))}
+                >
                   <SelectTrigger id="bathrooms" className="mt-1.5">
                     <SelectValue placeholder={translate("select_bathrooms")} />
                   </SelectTrigger>
@@ -104,12 +193,24 @@ export function ListPropertyForm() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="price">{translate("monthly_rent")}</Label>
-                <Input id="price" type="number" placeholder={translate("rent_placeholder")} className="mt-1.5" required />
+                <Input 
+                  id="price" 
+                  type="number" 
+                  placeholder={translate("rent_placeholder")} 
+                  className="mt-1.5" 
+                  required 
+                  value={formData.price}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                />
               </div>
 
               <div>
                 <Label htmlFor="currency">{translate("currency")}</Label>
-                <Select defaultValue="USD" required>
+                <Select 
+                  required
+                  value={formData.currency}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+                >
                   <SelectTrigger id="currency" className="mt-1.5">
                     <SelectValue placeholder={translate("select_currency")} />
                   </SelectTrigger>
@@ -133,7 +234,11 @@ export function ListPropertyForm() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="location">{translate("location")}</Label>
-              <Select required>
+              <Select 
+                required
+                value={formData.location}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+              >
                 <SelectTrigger id="location" className="mt-1.5">
                   <SelectValue placeholder={translate("select_location")} />
                 </SelectTrigger>
@@ -158,58 +263,92 @@ export function ListPropertyForm() {
             <div>
               <Label className="mb-2 block">{translate("amenities")}</Label>
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="wifi" />
-                  <Label htmlFor="wifi" className="text-sm">
-                    {translate("wifi")}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="parking" />
-                  <Label htmlFor="parking" className="text-sm">
-                    {translate("parking")}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="generator" />
-                  <Label htmlFor="generator" className="text-sm">
-                    {translate("generator")}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="security" />
-                  <Label htmlFor="security" className="text-sm">
-                    {translate("security")}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="pool" />
-                  <Label htmlFor="pool" className="text-sm">
-                    {translate("swimming_pool")}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="gym" />
-                  <Label htmlFor="gym" className="text-sm">
-                    {translate("gym")}
-                  </Label>
-                </div>
+                {[
+                  { id: 'wifi', label: 'wifi' },
+                  { id: 'parking', label: 'parking' },
+                  { id: 'security', label: 'security' },
+                  { id: 'pool', label: 'swimming_pool' },
+                  { id: 'gym', label: 'gym' }
+                ].map(amenity => (
+                  <div key={amenity.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={amenity.id}
+                      checked={formData.amenities.includes(amenity.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFormData(prev => ({
+                            ...prev,
+                            amenities: [...prev.amenities, amenity.id]
+                          }))
+                        } else {
+                          setFormData(prev => ({
+                            ...prev,
+                            amenities: prev.amenities.filter(a => a !== amenity.id)
+                          }))
+                        }
+                      }}
+                    />
+                    <Label htmlFor={amenity.id} className="text-sm">
+                      {translate(amenity.label)}
+                    </Label>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div>
               <Label htmlFor="contact-name">{translate("contact_name")}</Label>
-              <Input id="contact-name" placeholder={translate("contact_name_placeholder")} className="mt-1.5" required />
+              <Input 
+                id="contact-name" 
+                placeholder={translate("contact_name_placeholder")} 
+                className="mt-1.5" 
+                required 
+                value={formData.ownerName}
+                onChange={(e) => setFormData(prev => ({ ...prev, ownerName: e.target.value }))}
+              />
             </div>
 
             <div>
               <Label htmlFor="contact-email">{translate("contact_email")}</Label>
-              <Input id="contact-email" type="email" placeholder={translate("contact_email_placeholder")} className="mt-1.5" required />
+              <Input 
+                id="contact-email" 
+                type="email" 
+                placeholder={translate("contact_email_placeholder")} 
+                className="mt-1.5" 
+                required 
+                value={formData.ownerEmail}
+                onChange={(e) => setFormData(prev => ({ ...prev, ownerEmail: e.target.value }))}
+              />
             </div>
 
             <div>
               <Label htmlFor="contact-phone">{translate("contact_phone")}</Label>
-              <Input id="contact-phone" placeholder={translate("contact_phone_placeholder")} className="mt-1.5" required />
+              <Input 
+                id="contact-phone" 
+                placeholder={translate("contact_phone_placeholder")} 
+                className="mt-1.5" 
+                required 
+                value={formData.ownerPhone}
+                onChange={(e) => setFormData(prev => ({ ...prev, ownerPhone: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="images">{translate("property_images")}</Label>
+              <Input
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                className="mt-1.5"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  setFormData(prev => ({ ...prev, images: files }))
+                }}
+              />
+              <p className="text-sm text-neutral-500 mt-1">
+                {translate("image_upload_help")}
+              </p>
             </div>
 
             <div className="flex items-center space-x-2 pt-2">

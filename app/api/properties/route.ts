@@ -1,5 +1,28 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { createProperty } from '@/app/actions/wordpress-properties'
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json()
+    const result = await createProperty(data)
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(result)
+  } catch (error: any) {
+    console.error('Error in property creation:', error)
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function GET() {
   try {
@@ -23,7 +46,7 @@ export async function GET() {
     }
 
     // Ensure all properties have the required fields to prevent client-side errors
-    const sanitizedProperties = properties.map(property => ({
+    const sanitizedProperties = properties.map((property: any) => ({
       ...property,
       price: property.price || 0,
       currency: property.currency || 'USD',

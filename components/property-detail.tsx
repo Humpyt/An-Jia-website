@@ -9,7 +9,28 @@ import { Badge } from "@/components/ui/badge"
 import { MapPin, Bed, Bath, ArrowLeft, Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import { LanguageSwitcher, useLanguage } from "@/components/language-switcher"
 
-export default function PropertyDetail({ property }: { property: any }) {
+interface Property {
+  id: string
+  title: string
+  description: string
+  location: string
+  price: string
+  currency: string
+  paymentTerms?: string
+  bedrooms: string
+  amenities: string[]
+  images: string[]
+  isPremium?: boolean
+  ownerName?: string
+  ownerContact?: string
+  propertyType: string
+  squareMeters?: string
+  floor?: string
+  units?: string
+  googlePin?: string
+}
+
+export default function PropertyDetail({ property }: { property: Property }) {
   const [isSaved, setIsSaved] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { translate } = useLanguage()
@@ -144,8 +165,7 @@ export default function PropertyDetail({ property }: { property: any }) {
                   <div className="flex items-center gap-2">
                     <Bath className="h-5 w-5 text-neutral-500" />
                     <span>
-                      {Math.floor(parseInt(property.bedrooms) * 0.75)}{" "}
-                      {Math.floor(parseInt(property.bedrooms) * 0.75) === 1 ? translate("bath") : translate("baths")}
+                      {property.floor ? `${property.floor} ${translate('floor')}` : `${translate('not_specified')}`}
                     </span>
                   </div>
                 </div>
@@ -202,12 +222,12 @@ export default function PropertyDetail({ property }: { property: any }) {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold">{property.agents.name}</h3>
-                      <p className="text-sm text-neutral-500">{property.agents.company}</p>
+                      <h3 className="font-semibold">{property.ownerName || translate('property_owner')}</h3>
+                      <p className="text-sm text-neutral-500">{translate('contact_for_details')}</p>
                     </div>
                     <div className="space-y-2">
                       <Button className="w-full" size="lg">
-                        {translate("contact_agent")}
+                        {translate("contact_owner")}
                       </Button>
                       <Button
                         variant="outline"
@@ -221,10 +241,11 @@ export default function PropertyDetail({ property }: { property: any }) {
                         {isSaved ? translate("saved") : translate("save_property")}
                       </Button>
                     </div>
-                    <div className="text-sm text-neutral-500">
-                      <p>Phone: {property.agents.phone}</p>
-                      <p>Email: {property.agents.email}</p>
-                    </div>
+                    {property.ownerContact && (
+                      <div className="text-sm text-neutral-500">
+                        <p>{translate('contact')}: {property.ownerContact}</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
