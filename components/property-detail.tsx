@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Bed, Bath, ArrowLeft, Heart, ChevronLeft, ChevronRight } from "lucide-react"
+import { MapPin, Bed, Bath, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check } from "lucide-react"
 import { LanguageSwitcher, useLanguage } from "@/components/language-switcher"
 import CacheControl from "@/components/cache-control"
 import type { Property } from "@/app/types/property";
@@ -209,21 +209,16 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-                  {/* Always display bedrooms from backend */}
-                  <div className="flex items-center gap-2">
-                    <Bed className="h-4 w-4 text-neutral-500" />
-                    <span>{property.bedrooms} {translate("bedroom")}</span>
-                  </div>
-                  {/* Always display bathrooms from backend */}
-                  <div className="flex items-center gap-2">
-                    <Bath className="h-4 w-4 text-neutral-500" />
-                    <span>{property.bathrooms || "0"} {translate("bathroom")}</span>
-                  </div>
-                  {property.units && (
+                  <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-neutral-500">{property.units} {translate("units")}</span>
+                      <Bed className="h-5 w-5 text-neutral-500" />
+                      <span className="text-neutral-500">{property.bedrooms} {translate("bedrooms")}</span>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2">
+                      <Bath className="h-5 w-5 text-neutral-500" />
+                      <span className="text-neutral-500">{property.bathrooms} {translate("bathrooms")}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Property Summary */}
@@ -251,30 +246,16 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                 {property.amenities && property.amenities.length > 0 && (
                   <div className="mt-6">
                     <h2 className="text-xl font-semibold">{translate("amenities")}</h2>
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {property.amenities.map((amenity: string) => (
                         <div
                           key={amenity}
-                          className="flex items-center gap-2 p-2 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors"
+                          className="flex items-center gap-2 p-4 rounded-lg bg-primary/5"
                         >
-                          <div className="p-1 bg-white rounded">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="h-4 w-4 text-primary"
-                            >
-                              <polyline points="9 11 12 14 22 4" />
-                              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                            </svg>
+                          <div className="flex-shrink-0">
+                            <Check className="h-5 w-5 text-primary" />
                           </div>
-                          <span className="font-medium">{amenity}</span>
+                          <span className="font-medium text-neutral-800">{amenity}</span>
                         </div>
                       ))}
                     </div>
