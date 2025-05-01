@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import * as wordpressApi from "@/lib/wordpress"
+import { Property } from "@/app/types/property";
 
 interface CreatePropertyData {
   title: string
@@ -106,7 +107,7 @@ export async function getPropertiesWithFilters(options: {
 /**
  * Get a property by ID from WordPress
  */
-export async function getPropertyById(id: string) {
+export async function getPropertyById(id: string): Promise<Property | null> {
   console.log(`Server action: Fetching property with ID ${id}`);
   
   // The wordpress.js implementation now handles errors and returns a fallback property

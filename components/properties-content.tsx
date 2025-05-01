@@ -12,6 +12,7 @@ import { Slider } from "@/components/ui/slider"
 import { PropertyCard } from "@/components/property-card"
 import { useLanguage } from "@/components/language-switcher"
 import { Property } from "@/lib/property-data"
+import { PropertyCategories } from "@/components/property-categories"
 
 export function PropertiesContent({ 
   initialProperties, 
@@ -31,6 +32,7 @@ export function PropertiesContent({
     maxPrice: searchParams.maxPrice as string || '',
     bedrooms: searchParams.bedrooms as string || 'any',
     bathrooms: searchParams.bathrooms as string || 'any',
+    propertyType: searchParams.propertyType as string || 'any',
     amenities: Array.isArray(searchParams.amenities) ? searchParams.amenities : 
       (searchParams.amenities ? [searchParams.amenities as string] : [])
   })
@@ -82,6 +84,7 @@ export function PropertiesContent({
                       if (filters.maxPrice) queryParams.set('maxPrice', filters.maxPrice)
                       if (filters.bedrooms !== 'any') queryParams.set('bedrooms', filters.bedrooms)
                       if (filters.bathrooms !== 'any') queryParams.set('bathrooms', filters.bathrooms)
+                      if (filters.propertyType !== 'any') queryParams.set('propertyType', filters.propertyType)
                       if (filters.amenities.length > 0) {
                         filters.amenities.forEach(amenity => 
                           queryParams.append('amenities', amenity)
@@ -161,17 +164,21 @@ export function PropertiesContent({
                       </Select>
                     </div>
 
+
+
                     <div className="space-y-4">
                       <Label>{translate("property_type")}</Label>
-                      <Select>
+                      <Select value={filters.propertyType} onValueChange={(value) => setFilters(prev => ({ ...prev, propertyType: value }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Any" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="any">Any</SelectItem>
-                          <SelectItem value="apartment">Apartment</SelectItem>
-                          <SelectItem value="house">House</SelectItem>
-                          <SelectItem value="villa">Villa</SelectItem>
+                          <SelectItem value="any">{translate("any")}</SelectItem>
+                          <SelectItem value="apartment">{translate("apartment")}</SelectItem>
+                          <SelectItem value="house">{translate("house")}</SelectItem>
+                          <SelectItem value="land">{translate("land")}</SelectItem>
+                          <SelectItem value="commercial">{translate("commercial")}</SelectItem>
+                          <SelectItem value="hotel">{translate("hotel")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -179,7 +186,7 @@ export function PropertiesContent({
                     <div className="space-y-4">
                       <Label>{translate("select_amenities")}</Label>
                       <div className="space-y-2">
-                        {['wifi', 'parking', 'gym', 'pool'].map((amenity) => (
+                        {['wifi', 'parking', 'security', 'furnished', 'garden', 'gym', 'pool'].map((amenity) => (
                           <div key={amenity} className="flex items-center">
                             <input
                               type="checkbox"
@@ -221,6 +228,7 @@ export function PropertiesContent({
                             maxPrice: '',
                             bedrooms: 'any',
                             bathrooms: 'any',
+                            propertyType: 'any',
                             amenities: []
                           })
                           window.location.href = window.location.pathname
@@ -235,7 +243,9 @@ export function PropertiesContent({
             </div>
 
             <div className="lg:col-span-3 space-y-6">
-              <div className="flex justify-between items-center">
+              <PropertyCategories />
+
+              <div className="flex justify-between items-center mt-6">
                 <p className="text-muted-foreground">
                   {properties.length} {translate("properties")}
                 </p>

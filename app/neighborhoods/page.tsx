@@ -1,5 +1,3 @@
-"use client"
-
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -7,60 +5,29 @@ import { Card, CardContent } from "@/components/ui/card"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Footer } from "@/components/footer"
 import { useLanguage } from "@/components/language-switcher"
+import { StarRating } from "@/components/star-rating"
+import { Neighborhood } from "@/app/types/neighborhood"
 
-const neighborhoods = [
-  {
-    id: "kololo",
-    name: "Kololo",
-    description: "An upscale residential area known for embassies, luxury homes, and proximity to the city center.",
-    image: "/images/03/WhatsApp Image 2025-04-09 at 11.36.23 AM.jpeg",
-    properties: 24,
-    averagePrice: 1200,
-  },
-  {
-    id: "naguru",
-    name: "Naguru",
-    description: "A prestigious neighborhood with beautiful views, modern apartments, and a growing expat community.",
-    image: "/images/03/WhatsApp Image 2025-04-09 at 11.36.25 AM (1).jpeg",
-    properties: 18,
-    averagePrice: 950,
-  },
-  {
-    id: "bukoto",
-    name: "Bukoto",
-    description:
-      "A vibrant area with a mix of residential and commercial properties, popular among young professionals.",
-    image: "/images/03/WhatsApp Image 2025-04-09 at 11.36.26 AM.jpeg",
-    properties: 15,
-    averagePrice: 800,
-  },
-  {
-    id: "muyenga",
-    name: "Muyenga",
-    description: "Known as 'Tank Hill', offering panoramic views of Lake Victoria and upscale housing options.",
-    image: "/images/04/WhatsApp Image 2025-04-09 at 11.37.57 AM.jpeg",
-    properties: 20,
-    averagePrice: 1100,
-  },
-  {
-    id: "ntinda",
-    name: "Ntinda",
-    description: "A rapidly developing suburb with good amenities, shopping centers, and affordable housing.",
-    image: "/images/04/WhatsApp Image 2025-04-09 at 11.37.58 AM (1).jpeg",
-    properties: 22,
-    averagePrice: 700,
-  },
-  {
-    id: "bugolobi",
-    name: "Bugolobi",
-    description: "A quiet, upscale residential area with good security, close to the industrial area.",
-    image: "/images/05/WhatsApp Image 2025-04-09 at 11.40.23 AM.jpeg",
-    properties: 16,
-    averagePrice: 900,
-  },
-]
+async function getNeighborhoods(): Promise<Neighborhood[]> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/anjia/v1/neighborhoods`, {
+      next: { revalidate: 3600 } // Cache for 1 hour
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch neighborhoods');
+    }
+    
+    const data = await response.json();
+    return data.neighborhoods;
+  } catch (error) {
+    console.error('Error fetching neighborhoods:', error);
+    return [];
+  }
+}
 
-export default function NeighborhoodsPage() {
+export default async function NeighborhoodsPage() {
+  const neighborhoods = await getNeighborhoods();
   const { translate } = useLanguage()
 
   return (
@@ -112,7 +79,7 @@ export default function NeighborhoodsPage() {
         <section className="py-10">
           <div className="container">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {neighborhoods.map((neighborhood) => (
+              {neighborhoods.map((neighborhood: Neighborhood) => (
                 <Card key={neighborhood.id} className="overflow-hidden border-0 shadow-lg rounded-xl">
                   <div className="aspect-[16/9] relative">
                     <img
@@ -130,6 +97,10 @@ export default function NeighborhoodsPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-neutral-500">{translate("avg_price")}</span>
                       <span className="font-semibold">${neighborhood.averagePrice}/mo</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm text-neutral-500">{translate("safety_rating")}</span>
+                      <StarRating rating={neighborhood.stats.safetyRating} size="sm" />
                     </div>
                     <p className="text-sm text-neutral-600 mb-4">
                       {translate(`${neighborhood.id}_description`)}

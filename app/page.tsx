@@ -10,7 +10,7 @@ import { Footer } from "@/components/footer"
 import { ImportedPropertiesShowcase } from "@/components/imported-properties-showcase"
 import { HomeContent } from "@/components/home-content"
 import { NavLinks } from "@/components/nav-links"
-import { AuthButtons } from "@/components/auth-buttons"
+
 
 export default function Home() {
   return (
@@ -23,7 +23,6 @@ export default function Home() {
           <NavLinks />
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <AuthButtons />
           </div>
         </div>
       </header>

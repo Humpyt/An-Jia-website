@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Property Detail Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .property-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .property-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .property-location {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .property-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .property-detail-item {
+            background-color: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .property-summary {
+            background-color: rgba(0, 128, 128, 0.1);
+            border: 1px solid rgba(0, 128, 128, 0.2);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .property-description {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .contact-button {
+            display: block;
+            background-color: #0066cc;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .contact-button:hover {
+            background-color: #0055aa;
+        }
+    </style>
+</head>
+<body>
+    <div class="property-card">
+        <h1 class="property-title">Modern 3 Bedroom Apartment in Downtown</h1>
+        <div class="property-location">Downtown</div>
+        
+        <div class="property-details">
+            <div class="property-detail-item">3 Bedrooms</div>
+            <div class="property-detail-item">2 Bathrooms</div>
+            <div class="property-detail-item">120 m²</div>
+            <div class="property-detail-item">$350,000</div>
+        </div>
+        
+        <div class="section-title">Property Summary</div>
+        <div class="property-summary">
+            This luxurious 3-bedroom apartment offers modern living in the heart of Downtown. With high-end finishes, spacious rooms, and stunning city views, it's perfect for urban professionals seeking comfort and convenience.
+        </div>
+        
+        <div class="section-title">Description</div>
+        <div class="property-description">
+            <p>A stunning modern apartment featuring 3 bedrooms and state-of-the-art amenities including a spacious living area, modern kitchen, and private balcony with city views.</p>
+            <p>The property boasts high ceilings, hardwood floors, and large windows that fill the space with natural light. The gourmet kitchen is equipped with stainless steel appliances, granite countertops, and custom cabinetry.</p>
+            <p>The master bedroom includes an en-suite bathroom with a soaking tub and walk-in shower. Two additional bedrooms provide ample space for family or guests.</p>
+        </div>
+        
+        <div class="section-title">Amenities</div>
+        <div class="amenities-grid">
+            <div class="amenity-item">✓ Air Conditioning</div>
+            <div class="amenity-item">✓ Parking</div>
+            <div class="amenity-item">✓ Security</div>
+            <div class="amenity-item">✓ Swimming Pool</div>
+            <div class="amenity-item">✓ Gym</div>
+            <div class="amenity-item">✓ WiFi</div>
+        </div>
+        
+        <a href="tel:+256707507465" class="contact-button">+256 707 507 465 / +256 782 528 269</a>
+    </div>
+</body>
+</html>

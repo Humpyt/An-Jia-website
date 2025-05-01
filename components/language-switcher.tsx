@@ -4,6 +4,7 @@ import { useState, useEffect, createContext, useContext } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Check, Globe } from "lucide-react"
+import { addCustomTranslations } from "./language-translations"
 
 type Language = {
   code: string
@@ -58,6 +59,7 @@ const defaultTranslations = {
     "baths": "baths",
     "bath": "bath",
     "description": "Description",
+    "property_summary": "Property Summary",
     "amenities": "Amenities",
     "find_your_perfect_home": "Find Your Perfect Home in Kampala",
     "discover_best_properties": "Discover the best properties in Kampala's most desirable neighborhoods. Whether you're looking to rent or buy, we have the perfect place for you.",
@@ -67,7 +69,7 @@ const defaultTranslations = {
     "powerful_property_management_dashboard": "Powerful property management dashboard",
     "direct_connection_with_potential_tenants": "Direct connection with potential tenants",
     "start_hosting": "Start Hosting",
-    
+
     // About page translations
     "about_hero_title": "Connecting Kampala's Renters with Their Perfect Home",
     "about_hero_description": "An Jia You Xuan is an Airbnb-inspired rental platform focused exclusively on Kampala's housing market, where property owners can list available units and potential tenants can find their ideal home.",
@@ -117,7 +119,7 @@ const defaultTranslations = {
     "owner_dashboard_description": "Property owners get access to a powerful dashboard to manage listings and track performance.",
     "ready_to_find_home": "Ready to Find Your Perfect Home?",
     "join_today": "Join An Jia You Xuan today and discover the best rental properties Kampala has to offer.",
-    
+
     // Neighborhoods page translations
     "discover_neighborhoods": "Discover Kampala's Neighborhoods",
     "neighborhoods_description": "Explore the diverse neighborhoods of Kampala and find the perfect area for your next home.",
@@ -131,7 +133,7 @@ const defaultTranslations = {
     "bugolobi_description": "Peaceful residential area with excellent amenities",
     "ntinda_description": "Family-friendly neighborhood with convenient shopping",
     "mutungo_description": "Known as 'Tank Hill' with panoramic lake views",
-    
+
     // Properties page translations
     "all_properties": "All Properties",
     "filter_properties": "Filter Properties",
@@ -163,7 +165,7 @@ const defaultTranslations = {
     "performance_analytics_description": "Track views, inquiries, and engagement with your property listings through our detailed analytics.",
     "what_hosts_say": "What Our Hosts Say",
     "get_started": "Fill out the form below to get started",
-    
+
     // List property form translations
     "property_type": "Property Type",
     "select_property_type": "Select property type",
@@ -229,6 +231,7 @@ const defaultTranslations = {
     "baths": "浴室",
     "bath": "浴室",
     "description": "描述",
+    "property_summary": "房产概要",
     "amenities": "设施",
     "find_your_perfect_home": "在坎帕拉找到您的理想住所",
     "discover_best_properties": "探索坎帕拉最理想社区的最佳房产。无论您是想租房还是买房，我们都能为您提供完美的住所。",
@@ -238,7 +241,7 @@ const defaultTranslations = {
     "powerful_property_management_dashboard": "强大的房产管理仪表板",
     "direct_connection_with_potential_tenants": "与潜在租户直接联系",
     "start_hosting": "开始出租",
-    
+
     // About page translations
     "about_hero_title": "连接坎帕拉的租户与他们的完美住所",
     "about_hero_description": "安家优选是一个专注于坎帕拉住房市场的Airbnb风格租赁平台，房主可以在这里列出可用单位，潜在租户可以找到他们理想的家。",
@@ -288,7 +291,7 @@ const defaultTranslations = {
     "owner_dashboard_description": "房产所有者可以访问强大的仪表板来管理房源和跟踪性能。",
     "ready_to_find_home": "准备找到您的完美住所？",
     "join_today": "今天加入安家优选，发现坎帕拉提供的最佳租赁房产。",
-    
+
     // Neighborhoods page translations
     "discover_neighborhoods": "探索坎帕拉的社区",
     "neighborhoods_description": "探索坎帕拉多样化的社区，为您的下一个家找到完美的区域。",
@@ -302,7 +305,7 @@ const defaultTranslations = {
     "bugolobi_description": "宁静的住宅区，拥有出色的设施",
     "ntinda_description": "适合家庭的社区，购物便利",
     "mutungo_description": "被称为'坦克山'，拥有全景湖景",
-    
+
     // Properties page translations
     "all_properties": "所有房产",
     "filter_properties": "筛选房产",
@@ -334,7 +337,7 @@ const defaultTranslations = {
     "performance_analytics_description": "通过详细的分析追踪您房源的浏览量、咨询量和参与度。",
     "what_hosts_say": "房东怎么说",
     "get_started": "填写以下表格开始",
-    
+
     // List property form translations
     "property_type": "房产类型",
     "select_property_type": "选择房产类型",
@@ -400,6 +403,7 @@ const defaultTranslations = {
     "baths": "バスルーム",
     "bath": "バスルーム",
     "description": "説明",
+    "property_summary": "物件概要",
     "amenities": "設備",
     "find_your_perfect_home": "カンパラで理想の住まいを見つける",
     "discover_best_properties": "カンパラの最も人気のあるエリアで最高の物件を発見しましょう。賃貸または購入をお考えの方に、最適な物件をご用意しています。",
@@ -409,7 +413,7 @@ const defaultTranslations = {
     "powerful_property_management_dashboard": "強力な物件管理ダッシュボード",
     "direct_connection_with_potential_tenants": "潜在的な借主との直接のつながり",
     "start_hosting": "ホスティングを始める",
-    
+
     // About page translations
     "about_hero_title": "カンパラの借主と理想の住まいをつなぐ",
     "about_hero_description": "安家優選は、カンパラの住宅市場に特化したAirbnbスタイルのレンタルプラットフォームで、物件所有者が利用可能な物件を掲載し、潜在的な借主が理想の住まいを見つけることができます。",
@@ -459,7 +463,7 @@ const defaultTranslations = {
     "owner_dashboard_description": "物件所有者は強力なダッシュボードにアクセスして、物件を管理しパフォーマンスを追跡できます。",
     "ready_to_find_home": "理想の住まいを見つける準備はできていますか？",
     "join_today": "今日安家優選に参加して、カンパラが提供する最高の賃貸物件を発見しましょう。",
-    
+
     // Neighborhoods page translations
     "discover_neighborhoods": "カンパラの近隣地域を発見",
     "neighborhoods_description": "カンパラの多様な近隣地域を探索し、次の住まいに最適なエリアを見つけましょう。",
@@ -473,7 +477,7 @@ const defaultTranslations = {
     "bugolobi_description": "優れた設備を備えた静かな住宅地",
     "ntinda_description": "ファミリー向けの地域、買い物が便利",
     "mutungo_description": "'タンクヒル'として知られる、パノラマの湖の景色がある地域",
-    
+
     // Properties page translations
     "all_properties": "すべての物件",
     "filter_properties": "物件をフィルタリング",
@@ -505,7 +509,7 @@ const defaultTranslations = {
     "performance_analytics_description": "詳細な分析で物件の閲覧数、問い合わせ、エンゲージメントを追跡できます。",
     "what_hosts_say": "オーナーの声",
     "get_started": "以下のフォームに記入して始めましょう",
-    
+
     // List property form translations
     "property_type": "物件タイプ",
     "select_property_type": "物件タイプを選択",
@@ -564,8 +568,11 @@ export const useLanguage = () => useContext(LanguageContext);
 
 // Language provider component
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  // Add custom translations to the default translations
+  const enhancedTranslations = addCustomTranslations(defaultTranslations);
+
   const [currentLanguage, setCurrentLanguage] = useState<Language>(languages[0]);
-  const [translations, setTranslations] = useState(defaultTranslations);
+  const [translations, setTranslations] = useState(enhancedTranslations);
 
   // Load saved language preference on component mount
   useEffect(() => {

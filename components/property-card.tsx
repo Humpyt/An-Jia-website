@@ -18,6 +18,15 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
 
   // Use the first image from the images array
   const imageUrl = property.images?.[0] || "/placeholder.svg"
+  
+  // Format price with thousand separator
+  const formatPrice = (price: string, currency: string) => {
+    const numericPrice = parseInt(price)
+    if (currency === "UGX") {
+      return `UGX ${numericPrice.toLocaleString()}`
+    }
+    return `$${numericPrice.toLocaleString()}`
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -34,6 +43,11 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
         {property.isPremium && (
           <Badge className="absolute top-2 right-2 bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0">
             {featured ? "Premium" : "Premium"}
+          </Badge>
+        )}
+        {property.propertyType && (
+          <Badge className="absolute bottom-2 left-2 capitalize bg-white text-black">
+            {property.propertyType}
           </Badge>
         )}
         <button
@@ -53,14 +67,24 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
           <span>
             {property.bedrooms} {parseInt(property.bedrooms) === 1 ? translate("bed") : translate("beds")}
           </span>
-          <span>•</span>
-          <span>
-            {Math.floor(parseInt(property.bedrooms) * 0.75)} {Math.floor(parseInt(property.bedrooms) * 0.75) === 1 ? translate("bath") : translate("baths")}
-          </span>
+          {property.floor && (
+            <>
+              <span>•</span>
+              <span>{property.floor} {translate('floor')}</span>
+            </>
+          )}
+          {property.squareMeters && (
+            <>
+              <span>•</span>
+              <span>{property.squareMeters} m²</span>
+            </>
+          )}
         </div>
         <div className="mt-3">
-          <span className="font-semibold">${property.price}</span>
-          <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
+          <span className="font-semibold">{formatPrice(property.price, property.currency || 'USD')}</span>
+          {property.paymentTerms && (
+            <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
+          )}
         </div>
         {property.amenities && property.amenities.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1">
