@@ -75,13 +75,53 @@ add_action('acf/init', 'anjia_register_amenities_fields');
 function anjia_add_amenities_to_rest_api() {
     register_rest_field('property', 'amenities', array(
         'get_callback' => function($post) {
-            return get_field('property_amenities', $post['id']);
+            $amenities = get_field('property_amenities', $post['id']);
+            
+            // If no amenities are selected, return an empty array
+            if (empty($amenities)) {
+                return array();
+            }
+            
+            // Ensure we're returning an array of strings
+            if (!is_array($amenities)) {
+                $amenities = array($amenities);
+            }
+            
+            // Filter out any null or empty values
+            $amenities = array_filter($amenities, function($value) {
+                return !empty($value) && is_string($value);
+            });
+            
+            // Return array of amenity keys
+            return array_values($amenities);
         },
         'schema' => array(
             'description' => 'Property amenities',
             'type' => 'array',
             'items' => array(
-                'type' => 'string'
+                'type' => 'string',
+                'enum' => array(
+                    'wifi',
+                    'parking',
+                    'security',
+                    'swimming_pool',
+                    'generator',
+                    'elevator',
+                    'terrace',
+                    'gym',
+                    'air_conditioning',
+                    'furnished',
+                    'water_tank',
+                    'cctv',
+                    'garden',
+                    'balcony',
+                    'solar_power',
+                    'internet',
+                    'laundry',
+                    'playground',
+                    'bbq',
+                    'storage'
+                )
             )
         ),
     ));

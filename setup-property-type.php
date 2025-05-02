@@ -75,7 +75,7 @@ function anjia_get_property_meta($object) {
         'price'         => get_field('price', $post_id),
         'currency'      => get_field('currency', $post_id),
         'payment_terms' => get_field('payment_terms', $post_id),
-        'amenities'     => get_field('amenities', $post_id),
+        'amenities'     => get_field('property_amenities', $post_id),
         'owner_name'    => get_field('owner_name', $post_id),
         'owner_contact' => get_field('owner_contact', $post_id),
         'google_pin'    => get_field('google_pin', $post_id),

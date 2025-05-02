@@ -8,26 +8,29 @@ import { PropertiesContent } from "@/components/properties-content"
 // Import the WordPress properties action instead of the mock data one
 import { getPropertiesWithFilters } from "@/app/actions/wordpress-properties"
 
-export default async function PropertiesPage({
-  searchParams,
-}: {
+export default async function PropertiesPage(props: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
+  const { searchParams } = props
+  const params = { ...searchParams }
+  
   // Parse filters
-  const page = searchParams.page ? Number.parseInt(searchParams.page as string) : 1
+  const page = params?.page ? Number.parseInt(params.page as string) : 1
   const limit = 12
   const offset = (page - 1) * limit
 
-  const location = searchParams.location as string | undefined
-  const minPrice = searchParams.minPrice ? Number.parseInt(searchParams.minPrice as string) : undefined
-  const maxPrice = searchParams.maxPrice ? Number.parseInt(searchParams.maxPrice as string) : undefined
-  const bedrooms = searchParams.bedrooms ? Number.parseInt(searchParams.bedrooms as string) : undefined
-  const bathrooms = searchParams.bathrooms ? Number.parseInt(searchParams.bathrooms as string) : undefined
-  const amenities = searchParams.amenities
-    ? Array.isArray(searchParams.amenities)
-      ? searchParams.amenities
-      : [searchParams.amenities]
-    : undefined
+  const filters = {
+    location: params.location as string | undefined,
+    minPrice: params.minPrice ? Number.parseInt(params.minPrice as string) : undefined,
+    maxPrice: params.maxPrice ? Number.parseInt(params.maxPrice as string) : undefined,
+    bedrooms: params.bedrooms ? Number.parseInt(params.bedrooms as string) : undefined,
+    bathrooms: params.bathrooms ? Number.parseInt(params.bathrooms as string) : undefined,
+    amenities: params.amenities
+      ? Array.isArray(params.amenities)
+        ? params.amenities
+        : [params.amenities]
+      : undefined
+  }
 
   // Fetch properties with filters
   let properties = [];
@@ -39,12 +42,12 @@ export default async function PropertiesPage({
       limit,
       offset,
       filters: {
-        location,
-        minPrice,
-        maxPrice,
-        bedrooms,
-        bathrooms,
-        amenities,
+        location: filters.location,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        bedrooms: filters.bedrooms,
+        bathrooms: filters.bathrooms,
+        amenities: filters.amenities,
       },
     });
     console.log(`Properties page: Fetched ${properties.length} properties`);
@@ -71,7 +74,7 @@ export default async function PropertiesPage({
         </div>
       </header>
 
-      <PropertiesContent initialProperties={propertiesData} searchParams={searchParams} />
+      <PropertiesContent initialProperties={propertiesData} searchParams={params} />
 
       <Footer />
     </div>

@@ -13,6 +13,12 @@ export const mockData = {
     active: true,
     status: 'published',
     created_at: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
+    amenities: (() => {
+      // Randomly select 3-6 amenities for each property
+      const allAmenities = ['wifi', 'parking', 'security', 'swimming_pool', 'generator', 'elevator', 'terrace', 'gym', 'air_conditioning', 'furnished', 'water_tank', 'cctv', 'garden', 'balcony', 'solar_power', 'internet', 'laundry', 'playground', 'bbq', 'storage'];
+      const numAmenities = Math.floor(Math.random() * 4) + 3; // 3 to 6 amenities
+      return allAmenities.sort(() => 0.5 - Math.random()).slice(0, numAmenities);
+    })(),
     property_images: Array(3).fill(0).map((_, j) => ({
       id: `img-${i}-${j}`,
       property_id: `prop-${i}`,

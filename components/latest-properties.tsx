@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import Image from "next/image"
 import { useLanguage } from "@/components/language-switcher"
@@ -41,7 +40,7 @@ interface Property {
   excerpt: string
 }
 
-export function FeaturedProperties() {
+export function LatestProperties() {
   const { translate } = useLanguage()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,9 +54,9 @@ export function FeaturedProperties() {
   }
 
   useEffect(() => {
-    const fetchFeaturedProperties = async () => {
+    const fetchLatestProperties = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/anjia/v1/featured-properties`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/anjia/v1/latest-properties`)
         if (!response.ok) throw new Error('Failed to fetch')
         const data = await response.json()
         setProperties(data)
@@ -68,14 +67,14 @@ export function FeaturedProperties() {
       }
     }
 
-    fetchFeaturedProperties()
+    fetchLatestProperties()
   }, [])
 
   if (loading) {
     return (
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("featured_properties")}</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -94,7 +93,7 @@ export function FeaturedProperties() {
     return (
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("featured_properties")}</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
           <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
         </div>
       </section>
@@ -105,20 +104,20 @@ export function FeaturedProperties() {
     return (
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("featured_properties")}</h2>
-          <div className="text-center text-gray-500 py-8">{translate("no_featured_properties")}</div>
+          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
+          <div className="text-center text-gray-500 py-8">{translate("no_properties_found")}</div>
         </div>
       </section>
     )
   }
 
   return (
-    <section className="py-16">
+    <section className="py-16 bg-gray-50">
       <div className="container">
-        <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("featured_properties")}</h2>
+        <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
-            <Card key={property.id} className="group overflow-hidden">
+            <Card key={property.id} className="group overflow-hidden bg-white">
               <div className="relative aspect-[4/3]">
                 <Link href={`/properties/${property.id}`}>
                   <div className="relative w-full h-full">
@@ -140,11 +139,6 @@ export function FeaturedProperties() {
                   <Heart className={`h-5 w-5 ${favorites.includes(property.id) ? "fill-rose-500 text-rose-500" : ""}`} />
                   <span className="sr-only">Add to favorites</span>
                 </Button>
-                {property.isPremium && (
-                  <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-500 hover:to-rose-500 text-white border-0">
-                    Premium
-                  </Badge>
-                )}
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between">
@@ -175,14 +169,12 @@ export function FeaturedProperties() {
                   </span>
                   <span>•</span>
                   <span>
-                    {Math.floor(parseInt(property.bedrooms) * 0.75)} {Math.floor(parseInt(property.bedrooms) * 0.75) === 1 ? translate("bath") : translate("baths")}
+                    {property.bathrooms} {parseInt(property.bathrooms) === 1 ? translate("bath") : translate("baths")}
                   </span>
                 </div>
                 <div className="mt-3">
-                  <span className="font-semibold">${property.price || 'Contact for Price'}</span>
-                  {property.paymentTerms && (
-                    <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
-                  )}
+                  <span className="font-semibold">${property.price}</span>
+                  <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
                 </div>
               </div>
             </Card>

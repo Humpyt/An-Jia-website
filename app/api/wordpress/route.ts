@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'http://anjia.local/wp-json'
+const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'http://anjia-wordpress.local/wp-json'
 const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'DELETE']
 
 // In-memory cache for API responses
