@@ -12,7 +12,7 @@ export default async function PropertiesPage(props: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const { searchParams } = props
-  const params = { ...searchParams }
+  const params = Object.fromEntries(Object.entries(searchParams))
   
   // Parse filters
   const page = params?.page ? Number.parseInt(params.page as string) : 1
