@@ -1,99 +1,124 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState, FormEvent } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon, MapPin, Search, Users } from "lucide-react"
+import { Building, Home, Hotel, Landmark, MapPin, Search, Store } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useLanguage } from "@/components/language-switcher"
+
+// Property type options with icons
+const propertyTypes = [
+  { id: "apartment", name: "apartment", icon: Building },
+  { id: "house", name: "house", icon: Home },
+  { id: "land", name: "land", icon: Landmark },
+  { id: "hotel", name: "hotel", icon: Hotel },
+  { id: "commercial", name: "commercial", icon: Store }
+]
 
 export function SearchBar() {
-  const [date, setDate] = useState<Date>()
-  const [guests, setGuests] = useState(1)
+  const router = useRouter()
+  const { translate } = useLanguage()
+  const [location, setLocation] = useState("")
+  const [propertyType, setPropertyType] = useState("")
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault()
+
+    // Build query parameters
+    const params = new URLSearchParams()
+
+    if (location) {
+      params.append("location", location)
+    }
+
+    if (propertyType) {
+      params.append("propertyType", propertyType)
+    }
+
+    // Navigate to the search page with search parameters
+    // Use window.location.href for consistent navigation behavior
+    window.location.href = `/search?${params.toString()}`
+  }
 
   return (
-    <div className="bg-white rounded-full p-2 shadow-lg flex flex-col md:flex-row">
+    <form onSubmit={handleSearch} className="bg-white rounded-full p-2 shadow-lg flex flex-col md:flex-row">
       <div className="relative flex-1 min-w-0">
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
           <MapPin className="h-5 w-5 text-neutral-400" />
         </div>
         <Input
           type="text"
-          placeholder="Where are you looking?"
-          className="h-12 pl-10 pr-4 rounded-full border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          placeholder={translate("location") || "Where are you looking?"}
+          className="h-12 pl-10 pr-4 rounded-full border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-black"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
         />
       </div>
 
       <div className="border-l border-neutral-200 hidden md:block" />
 
+      {/* Property Type Selector */}
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             className={cn(
               "h-12 px-4 text-left font-normal flex justify-start items-center gap-2 rounded-full hover:bg-neutral-100",
-              !date && "text-neutral-500",
+              !propertyType && "text-neutral-500",
             )}
           >
-            <CalendarIcon className="h-5 w-5 text-neutral-400" />
-            {date ? format(date, "PPP") : <span>Move-in date</span>}
+            {propertyType ? (
+              <>
+                {propertyTypes.find(pt => pt.id === propertyType)?.icon &&
+                  React.createElement(
+                    propertyTypes.find(pt => pt.id === propertyType)?.icon || Building,
+                    { className: "h-5 w-5 text-neutral-400" }
+                  )
+                }
+                <span>{translate(propertyType) || propertyType}</span>
+              </>
+            ) : (
+              <>
+                <Building className="h-5 w-5 text-neutral-400" />
+                <span>{translate("property_type") || "Property type"}</span>
+              </>
+            )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-        </PopoverContent>
-      </Popover>
-
-      <div className="border-l border-neutral-200 hidden md:block" />
-
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-12 px-4 text-left font-normal flex justify-start items-center gap-2 rounded-full hover:bg-neutral-100"
-          >
-            <Users className="h-5 w-5 text-neutral-400" />
-            <span>
-              {guests} {guests === 1 ? "person" : "people"}
-            </span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" align="start">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="guests">Number of occupants</Label>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setGuests(Math.max(1, guests - 1))}
-                  disabled={guests <= 1}
-                >
-                  <span>-</span>
-                </Button>
-                <span className="w-8 text-center">{guests}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setGuests(guests + 1)}
-                >
-                  <span>+</span>
-                </Button>
-              </div>
-            </div>
+        <PopoverContent className="w-60 p-2" align="start">
+          <div className="space-y-2">
+            {propertyTypes.map((type) => (
+              <Button
+                key={type.id}
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  propertyType === type.id && "bg-neutral-100"
+                )}
+                onClick={() => setPropertyType(type.id)}
+              >
+                <type.icon className="h-5 w-5 mr-2 text-neutral-500" />
+                <span>{translate(type.name) || type.name}</span>
+              </Button>
+            ))}
           </div>
         </PopoverContent>
       </Popover>
 
-      <Button className="h-12 px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white ml-2">
+
+
+      <Button
+        type="submit"
+        className="h-12 px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white ml-2"
+      >
         <Search className="h-5 w-5 md:mr-2" />
-        <span className="hidden md:inline">Search</span>
+        <span className="hidden md:inline">{translate("search") || "Search"}</span>
       </Button>
-    </div>
+    </form>
   )
 }

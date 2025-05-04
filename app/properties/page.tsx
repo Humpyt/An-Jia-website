@@ -5,6 +5,7 @@ import { Footer } from "@/components/footer"
 import { NavLinks } from "@/components/nav-links"
 import { AuthButtons } from "@/components/auth-buttons"
 import { PropertiesContent } from "@/components/properties-content"
+import { PageHeader } from "@/components/page-header"
 // Import the WordPress properties action instead of the mock data one
 import { getPropertiesWithFilters } from "@/app/actions/wordpress-properties"
 
@@ -12,20 +13,37 @@ export default async function PropertiesPage(props: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const { searchParams } = props
-  const params = { ...searchParams }
-  
+
+  // Wait for searchParams to be ready
+  const searchParamsReady = await Promise.resolve(searchParams)
+
+  // Sanitize searchParams to only include the values we need
+  const params = {
+    page: searchParamsReady?.page?.toString(),
+    location: searchParamsReady?.location?.toString(),
+    minPrice: searchParamsReady?.minPrice?.toString(),
+    maxPrice: searchParamsReady?.maxPrice?.toString(),
+    bedrooms: searchParamsReady?.bedrooms?.toString(),
+    bathrooms: searchParamsReady?.bathrooms?.toString(),
+    propertyType: searchParamsReady?.propertyType?.toString(),
+    moveInDate: searchParamsReady?.moveInDate?.toString(),
+    occupants: searchParamsReady?.occupants?.toString(),
+    amenities: searchParamsReady?.amenities
+  }
+
   // Parse filters
-  const page = params?.page ? Number.parseInt(params.page as string) : 1
+  const page = params?.page ? Number.parseInt(params.page) : 1
   const limit = 12
   const offset = (page - 1) * limit
 
   const filters = {
-    location: params.location as string | undefined,
-    minPrice: params.minPrice ? Number.parseInt(params.minPrice as string) : undefined,
-    maxPrice: params.maxPrice ? Number.parseInt(params.maxPrice as string) : undefined,
-    bedrooms: params.bedrooms ? Number.parseInt(params.bedrooms as string) : undefined,
-    bathrooms: params.bathrooms ? Number.parseInt(params.bathrooms as string) : undefined,
-    amenities: params.amenities
+    location: params?.location || undefined,
+    minPrice: params?.minPrice ? Number.parseInt(params.minPrice) : undefined,
+    maxPrice: params?.maxPrice ? Number.parseInt(params.maxPrice) : undefined,
+    bedrooms: params?.bedrooms && params.bedrooms !== 'any' ? Number.parseInt(params.bedrooms) : undefined,
+    bathrooms: params?.bathrooms && params.bathrooms !== 'any' ? Number.parseInt(params.bathrooms) : undefined,
+    propertyType: params?.propertyType && params.propertyType !== 'any' ? params.propertyType : undefined,
+    amenities: params?.amenities
       ? Array.isArray(params.amenities)
         ? params.amenities
         : [params.amenities]
@@ -34,11 +52,13 @@ export default async function PropertiesPage(props: {
 
   // Fetch properties with filters
   let properties = [];
+  let totalCount = 0;
+  let totalPages = 0;
   let error = null;
-  
+
   try {
     console.log('Properties page: Fetching properties with filters');
-    properties = await getPropertiesWithFilters({
+    const result = await getPropertiesWithFilters({
       limit,
       offset,
       filters: {
@@ -47,18 +67,30 @@ export default async function PropertiesPage(props: {
         maxPrice: filters.maxPrice,
         bedrooms: filters.bedrooms,
         bathrooms: filters.bathrooms,
+        propertyType: filters.propertyType,
         amenities: filters.amenities,
       },
     });
-    console.log(`Properties page: Fetched ${properties.length} properties`);
+
+    properties = result.properties;
+    totalCount = result.totalCount;
+    totalPages = result.totalPages;
+
+    console.log(`Properties page: Fetched ${properties.length} properties out of ${totalCount} total (${totalPages} pages)`);
   } catch (err: any) {
     console.error('Error in properties page:', err);
     error = err.message || 'Failed to fetch properties';
   }
 
   // Format data to match what PropertiesContent expects
-  const propertiesData = { data: properties || [], error };
-  
+  const propertiesData = {
+    data: properties || [],
+    totalCount,
+    totalPages,
+    currentPage: page,
+    error
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -73,6 +105,12 @@ export default async function PropertiesPage(props: {
           </div>
         </div>
       </header>
+
+      <PageHeader
+        title="Properties"
+        description="Find your perfect property in our extensive listings"
+        height="medium"
+      />
 
       <PropertiesContent initialProperties={propertiesData} searchParams={params} />
 

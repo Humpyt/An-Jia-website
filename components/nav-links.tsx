@@ -5,7 +5,7 @@ import { useLanguage } from "@/components/language-switcher"
 
 export function NavLinks() {
   const { translate } = useLanguage()
-  
+
   return (
     <nav className="hidden md:flex gap-6 text-sm font-medium">
       <Link href="/" className="text-foreground">
@@ -14,9 +14,10 @@ export function NavLinks() {
       <Link href="/properties" className="text-muted-foreground hover:text-foreground">
         {translate("properties")}
       </Link>
-      <Link href="/neighborhoods" className="text-muted-foreground hover:text-foreground">
+
+      <span className="text-muted-foreground opacity-50 cursor-not-allowed">
         {translate("neighborhoods")}
-      </Link>
+      </span>
       <Link href="/about" className="text-muted-foreground hover:text-foreground">
         {translate("about")}
       </Link>

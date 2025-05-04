@@ -1,27 +1,30 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
-import { Heart } from "lucide-react"
 import { useLanguage } from "@/components/language-switcher"
+import { memo } from "react"
 
 interface PropertyCardProps {
   property: any
   featured?: boolean
 }
 
-export function PropertyCard({ property, featured = false }: PropertyCardProps) {
-  const [isSaved, setIsSaved] = useState(false)
+function PropertyCardComponent({ property, featured = false }: PropertyCardProps) {
+
   const { translate } = useLanguage()
 
-  // Use the first image from the images array
-  const imageUrl = property.images?.[0] || "/placeholder.svg"
-  
+  // Use the first image from the images array or featured image
+  const imageUrl = property.images?.[0] || property.featuredImage || "/placeholder.svg"
+
   // Format price with thousand separator
   const formatPrice = (price: string, currency: string) => {
+    if (!price) return 'Price on request';
+
     const numericPrice = parseInt(price)
+    if (isNaN(numericPrice)) return 'Price on request';
+
     if (currency === "UGX") {
       return `UGX ${numericPrice.toLocaleString()}`
     }
@@ -37,26 +40,22 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
             alt={property.title || "Property"}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            loading="lazy"
+            quality={80}
           />
         </div>
         {property.isPremium && (
           <Badge className="absolute top-2 right-2 bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0">
-            {featured ? "Premium" : "Premium"}
+            {translate("premium")}
           </Badge>
         )}
         {property.propertyType && (
           <Badge className="absolute bottom-2 left-2 capitalize bg-white text-black">
-            {property.propertyType}
+            {translate(property.propertyType.toLowerCase()) || property.propertyType}
           </Badge>
         )}
-        <button
-          onClick={() => setIsSaved(!isSaved)}
-          className="absolute top-2 left-2 bg-white p-1.5 rounded-full shadow-md"
-          aria-label={isSaved ? translate("saved") : translate("save_property")}
-        >
-          <Heart className={`h-5 w-5 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`} />
-        </button>
+
       </div>
       <div className="p-4">
         <Link href={`/properties/${property.id}`} className="hover:underline">
@@ -64,20 +63,33 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
         </Link>
         <p className="text-sm text-neutral-500 mt-1">{property.location}</p>
         <div className="flex items-center gap-2 mt-2 text-sm">
-          <span>
-            {property.bedrooms} {parseInt(property.bedrooms) === 1 ? translate("bed") : translate("beds")}
-          </span>
+          {property.bedrooms && (
+            <>
+              <span>
+                {property.bedrooms} {translate("bedroom")}{parseInt(property.bedrooms) !== 1 && 's'}
+              </span>
+              {(property.bathrooms || property.floor || property.squareMeters) && <span>•</span>}
+            </>
+          )}
+          {property.bathrooms && (
+            <>
+              <span>
+                {property.bathrooms} {translate("bathroom")}{parseFloat(property.bathrooms) !== 1 && 's'}
+              </span>
+              {(property.floor || property.squareMeters) && <span>•</span>}
+            </>
+          )}
           {property.floor && (
             <>
-              <span>•</span>
               <span>{property.floor} {translate('floor')}</span>
+              {property.squareMeters && <span>•</span>}
             </>
           )}
           {property.squareMeters && (
-            <>
-              <span>•</span>
-              <span>{property.squareMeters} m²</span>
-            </>
+            <span>{property.squareMeters} m²</span>
+          )}
+          {!property.bedrooms && !property.bathrooms && !property.floor && !property.squareMeters && (
+            <span>{property.propertyType || translate("property")}</span>
           )}
         </div>
         <div className="mt-3">
@@ -90,12 +102,12 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
           <div className="mt-3 flex flex-wrap gap-1">
             {property.amenities.slice(0, 3).map((amenity: string, index: number) => (
               <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                {amenity}
+                {translate(amenity.toLowerCase().replace(/\s+/g, '_')) || amenity}
               </span>
             ))}
             {property.amenities.length > 3 && (
               <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                +{property.amenities.length - 3} more
+                +{property.amenities.length - 3} {translate("more")}
               </span>
             )}
           </div>
@@ -104,3 +116,6 @@ export function PropertyCard({ property, featured = false }: PropertyCardProps) 
     </div>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const PropertyCard = memo(PropertyCardComponent);

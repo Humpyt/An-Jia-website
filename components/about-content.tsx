@@ -9,7 +9,7 @@ import { useLanguage } from "@/components/language-switcher"
 
 export function AboutContent() {
   const { translate } = useLanguage()
-  
+
   return (
     <main className="flex-1">
       {/* Hero section */}
@@ -26,8 +26,8 @@ export function AboutContent() {
               <Button size="lg" asChild>
                 <Link href="/properties">{translate("browse_properties")}</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/neighborhoods">{translate("explore_neighborhoods")}</Link>
+              <Button size="lg" variant="outline" disabled className="opacity-50 cursor-not-allowed">
+                {translate("explore_neighborhoods")}
               </Button>
             </div>
           </div>
@@ -51,12 +51,13 @@ export function AboutContent() {
                 <span>{translate("trusted_by_many")}</span>
               </div>
             </div>
-            <div className="relative aspect-video rounded-lg overflow-hidden">
+            <div className="relative aspect-video rounded-lg overflow-hidden shadow-lg">
               <Image
-                src="/placeholder.svg?height=400&width=600"
-                alt="Kampala skyline"
+                src="/images/04/WhatsApp Image 2025-04-09 at 11.37.57 AM (2).jpeg"
+                alt="Beautiful house interior"
                 fill
                 className="object-cover"
+                priority
               />
             </div>
           </div>

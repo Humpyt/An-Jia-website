@@ -2,7 +2,6 @@ export interface Property {
   id: string;
   title: string;
   description: string;
-  descriptionSummary?: string; // Added for AI-generated summary
   location: string;
   price: string;
   currency: string;

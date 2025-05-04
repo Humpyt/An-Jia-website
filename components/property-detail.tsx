@@ -11,12 +11,8 @@ import { LanguageSwitcher, useLanguage } from "@/components/language-switcher"
 import CacheControl from "@/components/cache-control"
 import type { Property } from "@/app/types/property";
 
-// Extend the Property type to include our new descriptionSummary field
-interface ExtendedProperty extends Property {
-  descriptionSummary?: string;
-}
-
-export default function PropertyDetail({ property }: { property: ExtendedProperty }) {
+// No description summary field needed anymore
+export default function PropertyDetail({ property }: { property: Property }) {
   const [isSaved, setIsSaved] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { translate } = useLanguage()
@@ -80,7 +76,7 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 {property.isPremium && (
-                  <Badge className="absolute top-4 right-4 bg-yellow-500">Premium</Badge>
+                  <Badge className="absolute top-4 right-4 bg-yellow-500">{translate("premium")}</Badge>
                 )}
 
                 {/* Navigation buttons */}
@@ -221,15 +217,7 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                   </div>
                 </div>
 
-                {/* Property Summary */}
-                {property.descriptionSummary && (
-                  <div className="mt-6">
-                    <h2 className="text-xl font-semibold">{translate("property_summary")}</h2>
-                    <div className="mt-2 p-4 bg-primary/5 rounded-lg border border-primary/10 text-neutral-700 font-medium">
-                      {property.descriptionSummary}
-                    </div>
-                  </div>
-                )}
+                {/* Property Summary section removed */}
 
                 {/* Full Description Section */}
                 {property.description && (
@@ -248,13 +236,13 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent mb-6">
                       {translate("amenities")}
                     </h2>
-                    
+
                     {/* Modern amenities display with animations and hover effects */}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                       {property.amenities.map((amenityKey: string, index: number) => {
                         // Case insensitive matching - convert to lowercase for comparison
                         const normalizedKey = amenityKey.toLowerCase();
-                        
+
                         // Beautiful display names mapping with proper capitalization
                         const amenityDisplayNames: Record<string, string> = {
                           'wifi': 'WiFi',
@@ -278,16 +266,16 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                           'bbq': 'BBQ Area',
                           'storage': 'Storage Room'
                         };
-                        
+
                         // Get the display name with fallback formatting
-                        const displayName = amenityDisplayNames[normalizedKey] || 
-                          normalizedKey.split('_').map(word => 
+                        const displayName = amenityDisplayNames[normalizedKey] ||
+                          normalizedKey.split('_').map(word =>
                             word.charAt(0).toUpperCase() + word.slice(1)
                           ).join(' ');
 
                         // Enhanced icon set with type definitions
                         type IconComponentType = () => React.ReactElement;
-                        
+
                         // Define all icons with beautiful, consistent styling
                         const amenityIcons: Record<string, IconComponentType> = {
                           'wifi': () => (
@@ -321,11 +309,11 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#6366F1]"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a3 3 0 0 0-6 0v4"/><path d="M2 7h20"/><path d="M22 7v3a4 4 0 0 1-4 4h-3"/><path d="M2 7v3a4 4 0 0 0 4 4h3"/></svg>
                           ),
                         };
-                        
+
                         // Get icon or use default checkmark
                         const defaultIcon: IconComponentType = () => <Check className="h-6 w-6 text-[#6366F1]" />;
                         const IconComponent = amenityIcons[normalizedKey] || defaultIcon;
-                        
+
                         // Determine animation delay based on index for staggered animation
                         const animationDelay = `${index * 100}ms`;
 
@@ -337,7 +325,7 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                           >
                             {/* Card with gradient border effect */}
                             <div className="absolute inset-0 bg-gradient-to-br from-[#6366F1]/40 to-[#8B5CF6]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-                            
+
                             {/* Card content */}
                             <div className="flex items-center gap-3 p-5 bg-[#F8F7FF] group-hover:bg-[#EEEDFF] transition-all duration-300 rounded-xl relative z-10">
                               {/* Icon with pulse effect on hover */}
@@ -345,7 +333,7 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                                 <div className="absolute inset-0 bg-[#6366F1]/10 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" />
                                 <IconComponent />
                               </div>
-                              
+
                               {/* Amenity name with slide-up animation */}
                               <span className="font-medium text-neutral-800 transform group-hover:translate-x-1 transition-transform duration-300">
                                 {displayName}
@@ -355,7 +343,7 @@ export default function PropertyDetail({ property }: { property: ExtendedPropert
                         );
                       })}
                     </div>
-                    
+
                     {/* Add CSS animation keyframes */}
                     <style jsx>{`
                       @keyframes fadeIn {

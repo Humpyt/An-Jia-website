@@ -1,10 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Building, Home, Landmark, Hotel, Store } from "lucide-react"
-import { useSearchParams } from "next/navigation"
 import { useLanguage } from "@/components/language-switcher"
 
 // Define categories with icons and labels
@@ -37,62 +34,24 @@ const categoryButtons = [
 ]
 
 export function PropertyCategories() {
-  const [activeCategory, setActiveCategory] = useState("all")
   const { translate } = useLanguage()
-  const searchParams = useSearchParams()
-
-  // Set active category based on URL parameters on load
-  useEffect(() => {
-    const propertyType = searchParams.get('propertyType')
-    if (propertyType) {
-      setActiveCategory(propertyType)
-    }
-  }, [searchParams])
 
   return (
-    <section className="py-8">
+    <section className="py-10 bg-neutral-50">
       <div className="container">
-        <h2 className="text-2xl font-bold mb-6">{translate("browse_by_category")}</h2>
-        <div className="relative">
-          <div className="flex overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-            <div className="flex gap-3">
-              <Button
-                key="all"
-                variant="outline"
-                className={cn(
-                  "flex flex-col h-auto py-3 px-4 rounded-xl border-neutral-200 hover:border-neutral-300 shadow-sm",
-                  activeCategory === "all" && "border-rose-500 bg-rose-50 text-rose-500 hover:border-rose-500",
-                )}
-                onClick={() => {
-                  setActiveCategory("all")
-                  const params = new URLSearchParams(window.location.search)
-                  params.delete('propertyType')
-                  window.location.href = `${window.location.pathname}?${params.toString()}`
-                }}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {categoryButtons.map((category) => (
+              <div
+                key={category.id}
+                className="flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 bg-white border border-neutral-200 hover:border-rose-300 hover:bg-rose-50 shadow-sm hover:shadow-md transform hover:-translate-y-1"
               >
-                <span className="text-xs font-medium">{translate("all")}</span>
-              </Button>
-              {categoryButtons.map((category) => (
-                <Button
-                  key={category.id}
-                  variant="outline"
-                  className={cn(
-                    "flex flex-col h-auto py-3 px-4 rounded-xl border-neutral-200 hover:border-neutral-300 shadow-sm",
-                    activeCategory === category.id && "border-rose-500 bg-rose-50 text-rose-500 hover:border-rose-500",
-                  )}
-                  onClick={() => {
-                    setActiveCategory(category.id)
-                    // Update URL with property type filter
-                    const params = new URLSearchParams(window.location.search)
-                    params.set('propertyType', category.id)
-                    window.location.href = `${window.location.pathname}?${params.toString()}`
-                  }}
-                >
-                  <category.icon className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">{translate(category.name)}</span>
-                </Button>
-              ))}
-            </div>
+                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-rose-50 mb-3 transition-all duration-300 hover:bg-rose-100">
+                  <category.icon className="h-6 w-6 text-rose-500" />
+                </div>
+                <span className="font-medium capitalize text-neutral-800">{translate(category.name)}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

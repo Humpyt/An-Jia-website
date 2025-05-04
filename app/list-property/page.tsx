@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer"
 import { LanguageSwitcher, useLanguage } from "@/components/language-switcher"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ListPropertyForm } from "@/components/list-property-form"
+import { PageHeader } from "@/components/page-header"
 
 export default function ListPropertyPage() {
   const { translate } = useLanguage()
@@ -22,19 +23,19 @@ export default function ListPropertyPage() {
             <Link href="/properties" className="text-sm font-medium hover:text-rose-500 transition-colors">
               {translate("properties")}
             </Link>
-            <Link href="/neighborhoods" className="text-sm font-medium hover:text-rose-500 transition-colors">
+            <span className="text-sm font-medium text-neutral-400 opacity-50 cursor-not-allowed">
               {translate("neighborhoods")}
-            </Link>
+            </span>
             <Link href="/about" className="text-sm font-medium hover:text-rose-500 transition-colors">
               {translate("about")}
             </Link>
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="hidden md:flex hover:bg-rose-50 text-rose-500" 
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:flex hover:bg-rose-50 text-rose-500"
               asChild
             >
               <Link href="/list-property">{translate("list_property")}</Link>
@@ -42,17 +43,13 @@ export default function ListPropertyPage() {
           </div>
         </div>
       </header>
+      <PageHeader
+        title="List Your Property"
+        description="Join thousands of property owners who trust An Jia You Xuan"
+        height="medium"
+      />
+
       <main className="flex-1">
-        <section className="bg-rose-50 py-12 md:py-20">
-          <div className="container">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">{translate("list_property_title")}</h1>
-              <p className="text-lg text-neutral-600">
-                {translate("list_property_subtitle")}
-              </p>
-            </div>
-          </div>
-        </section>
 
         <section className="py-12 md:py-16">
           <div className="container">
@@ -150,16 +147,16 @@ export default function ListPropertyPage() {
                               </p>
                             </div>
                             <div className="flex gap-3">
-                              <Button 
-                                variant="outline" 
-                                type="button" 
+                              <Button
+                                variant="outline"
+                                type="button"
                                 onClick={() => {
                                   // Add download logic
                                 }}
                               >
                                 {translate("download_template_button")}
                               </Button>
-                              <Button 
+                              <Button
                                 type="button"
                                 onClick={() => {
                                   // Add upload logic

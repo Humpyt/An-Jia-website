@@ -7,7 +7,7 @@ import { SearchBar } from "@/components/search-bar"
 import { NeighborhoodShowcase } from "@/components/neighborhood-showcase"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Footer } from "@/components/footer"
-import { ImportedPropertiesShowcase } from "@/components/imported-properties-showcase"
+
 import { HomeContent } from "@/components/home-content"
 import { NavLinks } from "@/components/nav-links"
 

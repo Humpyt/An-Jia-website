@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
-import { Heart } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
@@ -11,33 +11,38 @@ import { useLanguage } from "@/components/language-switcher"
 interface Property {
   id: string
   title: string
-  slug: string
-  featured_image: string | null
+  slug?: string
+  featured_image?: string | null
   images: string[]
   price: string
+  currency?: string
   bedrooms: string
   bathrooms: string
-  square_footage: string
-  is_featured: boolean
-  isPremium: boolean
+  square_footage?: string
+  squareMeters?: string
+  is_featured?: boolean
+  isPremium?: boolean
   location: string
-  paymentTerms: string
-  neighborhoods: Array<{
+  paymentTerms?: string
+  description?: string
+  amenities?: string[]
+  propertyType?: string
+  neighborhoods?: Array<{
     id: number
     name: string
     slug: string
   }>
-  property_types: Array<{
+  property_types?: Array<{
     id: number
     name: string
     slug: string
   }>
-  price_ranges: Array<{
+  price_ranges?: Array<{
     id: number
     name: string
     slug: string
   }>
-  excerpt: string
+  excerpt?: string
 }
 
 export function LatestProperties() {
@@ -45,36 +50,76 @@ export function LatestProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [favorites, setFavorites] = useState<string[]>([])
-
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => 
-      prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]
-    )
-  }
+  // No favorites functionality
 
   useEffect(() => {
     const fetchLatestProperties = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/anjia/v1/latest-properties`)
-        if (!response.ok) throw new Error('Failed to fetch')
-        const data = await response.json()
-        setProperties(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load properties')
-      } finally {
-        setLoading(false)
-      }
-    }
+        // Add a retry mechanism for fetching properties
+        let retries = 3;
+        let fetchedProperties = [];
+        let lastError = null;
 
-    fetchLatestProperties()
-  }, [])
+        for (let attempt = 0; attempt < retries; attempt++) {
+          try {
+            console.log(`Attempt ${attempt + 1}/${retries} to fetch latest properties`);
+
+            // Use the correct API endpoint for latest properties
+            const response = await fetch('/api/properties/latest');
+
+            if (!response.ok) {
+              throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            // The API returns properties in a 'properties' field
+            if (data.properties && Array.isArray(data.properties)) {
+              console.log(`Successfully fetched ${data.properties.length} properties on attempt ${attempt + 1}`);
+              fetchedProperties = data.properties;
+              break; // Success, exit the retry loop
+            } else {
+              throw new Error('Invalid response format: properties field missing or not an array');
+            }
+          } catch (err) {
+            lastError = err;
+            console.error(`Attempt ${attempt + 1} failed:`, err);
+
+            // Wait before retrying (exponential backoff)
+            if (attempt < retries - 1) {
+              const delay = Math.pow(2, attempt) * 500;
+              console.log(`Waiting ${delay}ms before next attempt...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
+        }
+
+        if (fetchedProperties && fetchedProperties.length > 0) {
+          setProperties(fetchedProperties);
+        } else {
+          const errorMessage = lastError instanceof Error ? lastError.message : 'Failed to load properties';
+          console.error('All attempts to fetch properties failed:', errorMessage);
+          setError(errorMessage);
+        }
+      } catch (err) {
+        console.error('Error in property fetching process:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load properties');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestProperties();
+  }, []);
 
   if (loading) {
     return (
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tight">Latest Properties</h2>
+            <p className="text-muted-foreground mt-2">Discover our newest listings in Kampala</p>
+          </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -93,7 +138,10 @@ export function LatestProperties() {
     return (
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tight">Latest Properties</h2>
+            <p className="text-muted-foreground mt-2">Discover our newest listings in Kampala</p>
+          </div>
           <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
         </div>
       </section>
@@ -104,7 +152,10 @@ export function LatestProperties() {
     return (
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tight">Latest Properties</h2>
+            <p className="text-muted-foreground mt-2">Discover our newest listings in Kampala</p>
+          </div>
           <div className="text-center text-gray-500 py-8">{translate("no_properties_found")}</div>
         </div>
       </section>
@@ -114,7 +165,10 @@ export function LatestProperties() {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container">
-        <h2 className="text-3xl font-bold tracking-tight mb-8">{translate("latest_properties")}</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold tracking-tight">Latest Properties</h2>
+          <p className="text-muted-foreground mt-2">Discover our newest listings in Kampala</p>
+        </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
             <Card key={property.id} className="group overflow-hidden bg-white">
@@ -122,7 +176,7 @@ export function LatestProperties() {
                 <Link href={`/properties/${property.id}`}>
                   <div className="relative w-full h-full">
                     <Image
-                      src={property.featured_image || "/placeholder.svg"}
+                      src={property.featured_image || (property.images && property.images.length > 0 ? property.images[0] : "/placeholder.svg")}
                       alt={property.title}
                       fill
                       className="object-cover transition-transform hover:scale-105"
@@ -130,15 +184,11 @@ export function LatestProperties() {
                     />
                   </div>
                 </Link>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 rounded-full shadow-sm"
-                  onClick={() => toggleFavorite(property.id)}
-                >
-                  <Heart className={`h-5 w-5 ${favorites.includes(property.id) ? "fill-rose-500 text-rose-500" : ""}`} />
-                  <span className="sr-only">Add to favorites</span>
-                </Button>
+                {property.propertyType && (
+                  <Badge className="absolute bottom-2 left-2 capitalize bg-white text-black">
+                    {property.propertyType}
+                  </Badge>
+                )}
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between">
@@ -165,16 +215,21 @@ export function LatestProperties() {
                 <p className="text-sm text-neutral-500 mt-1">{property.location}</p>
                 <div className="flex items-center gap-2 mt-2 text-sm">
                   <span>
-                    {property.bedrooms} {parseInt(property.bedrooms) === 1 ? translate("bed") : translate("beds")}
+                    {property.bedrooms} {parseInt(property.bedrooms) === 1 ? "Bedroom" : "Bedrooms"}
                   </span>
                   <span>•</span>
                   <span>
-                    {property.bathrooms} {parseInt(property.bathrooms) === 1 ? translate("bath") : translate("baths")}
+                    {property.bathrooms} {parseInt(property.bathrooms) === 1 ? "Bathroom" : "Bathrooms"}
                   </span>
                 </div>
                 <div className="mt-3">
-                  <span className="font-semibold">${property.price}</span>
-                  <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
+                  <span className="font-semibold">
+                    {property.currency ? `${property.currency === 'USD' ? '$' : property.currency} ` : '$'}
+                    {property.price}
+                  </span>
+                  {property.paymentTerms && (
+                    <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
+                  )}
                 </div>
               </div>
             </Card>

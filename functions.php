@@ -18,6 +18,9 @@ require_once get_template_directory() . '/setup-amenities.php';
 require_once get_template_directory() . '/setup-ai-description.php';
 require_once get_template_directory() . '/setup-property-features.php';
 
+// Include REST API endpoint for properties
+require_once get_template_directory() . '/setup-property-api.php';
+
 // Define DeepSeek API key
 define('DEEPSEEK_API_KEY', getenv('DEEPSEEK_API_KEY'));
 

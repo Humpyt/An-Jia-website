@@ -270,6 +270,58 @@ An Jia You Xuan is a modern real estate platform built with a headless CMS archi
    - Prefetch data for common navigation paths
    - Cache results for improved performance
 
+## Deployment
+
+### Vercel Deployment
+
+The An Jia website is configured for deployment on Vercel. Follow these steps to deploy:
+
+1. **Prepare for Deployment**:
+   ```bash
+   # Update environment variables for production
+   # Edit .env.local with production WordPress API URL
+   ```
+
+2. **Deploy to Vercel**:
+   ```bash
+   # Using the provided deployment script
+   npm run vercel:deploy
+
+   # Or manually via Vercel CLI
+   vercel --prod
+   ```
+
+3. **Environment Variables**:
+   - Set the following environment variables in Vercel:
+     - `NEXT_PUBLIC_WORDPRESS_API_URL`: Your production WordPress API URL
+     - `WORDPRESS_API_URL`: Same as above
+     - `WORDPRESS_FALLBACK_API_URL`: Same as above
+     - `DEEPSEEK_API_KEY`: Your DeepSeek API key
+
+### Namecheap Domain Setup
+
+To connect a Namecheap domain to your Vercel deployment:
+
+1. Purchase a domain on Namecheap
+2. Configure DNS settings to point to Vercel
+3. Add the domain in your Vercel project settings
+4. Verify domain ownership
+5. Set up SSL certificate
+
+For detailed instructions, see the [Namecheap and Vercel Deployment Guide](NAMECHEAP-VERCEL-GUIDE.md).
+
+### WordPress Production Setup
+
+For setting up a production WordPress instance to serve as the API backend:
+
+1. Set up WordPress on a hosting provider
+2. Install and configure required plugins
+3. Set up custom post types and fields
+4. Configure security settings
+5. Connect your Next.js frontend to the WordPress API
+
+For detailed instructions, see the [WordPress Production Setup Guide](WORDPRESS-PRODUCTION-SETUP.md).
+
 ## License
 
 [MIT](LICENSE)

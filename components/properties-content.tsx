@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -13,58 +13,47 @@ import { PropertyCard } from "@/components/property-card"
 import { useLanguage } from "@/components/language-switcher"
 import { Property } from "@/lib/property-data"
 import { PropertyCategories } from "@/components/property-categories"
+import { CustomPagination } from "@/components/custom-pagination"
+import { MapPin, Search } from "lucide-react"
 
-export function PropertiesContent({ 
-  initialProperties, 
-  searchParams 
-}: { 
-  initialProperties: { data: Property[], error: null }, 
-  searchParams: Record<string, string | string[] | undefined> 
+export function PropertiesContent({
+  initialProperties,
+  searchParams
+}: {
+  initialProperties: {
+    data: Property[],
+    totalCount: number,
+    totalPages: number,
+    currentPage: number,
+    error: null
+  },
+  searchParams: Record<string, string | string[] | undefined>
 }) {
   const { translate } = useLanguage()
   const [properties, setProperties] = useState(initialProperties.data || [])
+  const [currentPage, setCurrentPage] = useState(initialProperties.currentPage || 1)
+  const [totalCount, setTotalCount] = useState(initialProperties.totalCount || 0)
+  const [totalPages, setTotalPages] = useState(initialProperties.totalPages || 1)
+  const itemsPerPage = 12
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [filters, setFilters] = useState({
-    minPrice: searchParams.minPrice as string || '',
-    maxPrice: searchParams.maxPrice as string || '',
-    bedrooms: searchParams.bedrooms as string || 'any',
-    bathrooms: searchParams.bathrooms as string || 'any',
-    propertyType: searchParams.propertyType as string || 'any',
-    amenities: Array.isArray(searchParams.amenities) ? searchParams.amenities : 
-      (searchParams.amenities ? [searchParams.amenities as string] : [])
+    minPrice: searchParams?.minPrice?.toString() || '',
+    maxPrice: searchParams?.maxPrice?.toString() || '',
+    bedrooms: searchParams?.bedrooms?.toString() || 'any',
+    bathrooms: searchParams?.bathrooms?.toString() || 'any',
+    propertyType: searchParams?.propertyType?.toString() || 'any',
+    location: searchParams?.location?.toString() || '',
+    moveInDate: searchParams?.moveInDate?.toString() || '',
+    occupants: searchParams?.occupants?.toString() || '',
+    amenities: Array.isArray(searchParams?.amenities) ? searchParams.amenities :
+      (searchParams?.amenities ? [searchParams.amenities.toString()] : [])
   })
-  
+
   return (
     <main className="flex-1">
-      <section className="relative py-20 text-white">
-        {/* Background image with overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image 
-            src="/images/03/WhatsApp Image 2025-04-09 at 11.36.26 AM.jpeg" 
-            alt="Kampala Properties" 
-            fill 
-            className="object-cover"
-            priority
-            sizes="100vw"
-            quality={80}
-          />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-        <div className="container">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold tracking-tight mb-4 md:text-4xl">
-              {translate("all_properties")}
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              {translate("discover_best_properties")}
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section className="py-16">
         <div className="container">
           <div className="grid lg:grid-cols-4 gap-8">
@@ -72,27 +61,40 @@ export function PropertiesContent({
               <div className="sticky top-24 space-y-6">
                 <div>
                   <h2 className="text-xl font-semibold mb-4">{translate("filter_properties")}</h2>
+                  <div className="mb-4">
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={() => window.location.href = '/search'}
+                    >
+                      <Search className="h-4 w-4" />
+                      {translate("advanced_search")}
+                    </Button>
+                  </div>
                   <form className="space-y-6" onSubmit={async (e) => {
                     e.preventDefault()
                     setLoading(true)
                     setError(null)
-                    
+
                     try {
                       const queryParams = new URLSearchParams()
-                      
+
+                      if (filters.location) queryParams.set('location', filters.location)
                       if (filters.minPrice) queryParams.set('minPrice', filters.minPrice)
                       if (filters.maxPrice) queryParams.set('maxPrice', filters.maxPrice)
                       if (filters.bedrooms !== 'any') queryParams.set('bedrooms', filters.bedrooms)
                       if (filters.bathrooms !== 'any') queryParams.set('bathrooms', filters.bathrooms)
                       if (filters.propertyType !== 'any') queryParams.set('propertyType', filters.propertyType)
+                      if (filters.moveInDate) queryParams.set('moveInDate', filters.moveInDate)
+                      if (filters.occupants) queryParams.set('occupants', filters.occupants)
                       if (filters.amenities.length > 0) {
-                        filters.amenities.forEach(amenity => 
+                        filters.amenities.forEach(amenity =>
                           queryParams.append('amenities', amenity)
                         )
                       }
-                      
-                      // Use window.location to update URL with filters
-                      window.location.href = `${window.location.pathname}?${queryParams.toString()}`
+
+                      // Use window.location to update URL with filters - redirect to search page
+                      window.location.href = `/search?${queryParams.toString()}`
                     } catch (err: any) {
                       setError(err.message || 'Failed to apply filters')
                     } finally {
@@ -100,43 +102,100 @@ export function PropertiesContent({
                     }
                   }}>
                     <div className="space-y-4">
-                      <Label>{translate("price_range")}</Label>
-                      <div className="grid grid-cols-2 gap-4">
+                      <Label>{translate("location")}</Label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                          <MapPin className="h-4 w-4 text-neutral-400" />
+                        </div>
+                        <Input
+                          id="location"
+                          type="text"
+                          placeholder={translate("enter_location") || "Enter location"}
+                          value={filters.location}
+                          onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label>{translate("price_range")}</Label>
+                        <span className="text-sm font-medium text-primary">
+                          {filters.minPrice ? `$${parseInt(filters.minPrice).toLocaleString()}` : "$0"} - {filters.maxPrice ? `$${parseInt(filters.maxPrice).toLocaleString()}` : "$5,000+"}
+                        </span>
+                      </div>
+
+                      <div className="pt-4 px-2">
+                        <Slider
+                          defaultValue={[
+                            parseInt(filters.minPrice || "0"),
+                            parseInt(filters.maxPrice || "5000")
+                          ]}
+                          max={5000}
+                          step={100}
+                          onValueChange={(values) => {
+                            setFilters(prev => ({
+                              ...prev,
+                              minPrice: values[0].toString(),
+                              maxPrice: values[1].toString()
+                            }))
+                          }}
+                          className="my-6"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mt-2">
                         <div>
                           <Label htmlFor="min-price" className="text-sm">
                             {translate("min_price")}
                           </Label>
-                          <Input 
-                            id="min-price" 
-                            type="number" 
-                            placeholder="0"
-                            value={filters.minPrice}
-                            onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
-                          />
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                              <span className="text-neutral-500">$</span>
+                            </div>
+                            <Input
+                              id="min-price"
+                              type="number"
+                              placeholder="0"
+                              value={filters.minPrice}
+                              onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
+                              className="pl-7"
+                            />
+                          </div>
                         </div>
                         <div>
                           <Label htmlFor="max-price" className="text-sm">
                             {translate("max_price")}
                           </Label>
-                          <Input 
-                            id="max-price" 
-                            type="number" 
-                            placeholder="5000"
-                            value={filters.maxPrice}
-                            onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
-                          />
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                              <span className="text-neutral-500">$</span>
+                            </div>
+                            <Input
+                              id="max-price"
+                              type="number"
+                              placeholder="5000"
+                              value={filters.maxPrice}
+                              onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
+                              className="pl-7"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
                       <Label>{translate("bedrooms")}</Label>
-                      <Select>
+                      <Select
+                        value={filters.bedrooms}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value }))}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Any" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="any">Any</SelectItem>
+                          <SelectItem value="any">{translate("any") || "Any"}</SelectItem>
                           <SelectItem value="1">1+</SelectItem>
                           <SelectItem value="2">2+</SelectItem>
                           <SelectItem value="3">3+</SelectItem>
@@ -183,45 +242,15 @@ export function PropertiesContent({
                       </Select>
                     </div>
 
-                    <div className="space-y-4">
-                      <Label>{translate("select_amenities")}</Label>
-                      <div className="space-y-2">
-                        {['wifi', 'parking', 'security', 'furnished', 'garden', 'gym', 'pool'].map((amenity) => (
-                          <div key={amenity} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              id={amenity}
-                              checked={filters.amenities.includes(amenity)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFilters(prev => ({
-                                    ...prev,
-                                    amenities: [...prev.amenities, amenity]
-                                  }))
-                                } else {
-                                  setFilters(prev => ({
-                                    ...prev,
-                                    amenities: prev.amenities.filter(a => a !== amenity)
-                                  }))
-                                }
-                              }}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <label htmlFor={amenity} className="ml-2 text-sm capitalize">
-                              {amenity}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+
 
                     <div className="flex flex-col gap-2">
                       <Button type="submit" disabled={loading}>
                         {loading ? 'Applying...' : translate("apply_filters")}
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        type="reset" 
+                      <Button
+                        variant="outline"
+                        type="reset"
                         onClick={() => {
                           setFilters({
                             minPrice: '',
@@ -229,9 +258,12 @@ export function PropertiesContent({
                             bedrooms: 'any',
                             bathrooms: 'any',
                             propertyType: 'any',
+                            location: '',
+                            moveInDate: '',
+                            occupants: '',
                             amenities: []
                           })
-                          window.location.href = window.location.pathname
+                          window.location.href = '/search'
                         }}
                       >
                         {translate("reset_filters")}
@@ -247,11 +279,18 @@ export function PropertiesContent({
 
               <div className="flex justify-between items-center mt-6">
                 <p className="text-muted-foreground">
-                  {properties.length} {translate("properties")}
+                  {totalCount} {translate("properties")}
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{translate("sort_by")}:</span>
-                  <Select>
+                  <Select
+                    value={searchParams?.sort?.toString() || "newest"}
+                    onValueChange={(value) => {
+                      const queryParams = new URLSearchParams(window.location.search);
+                      queryParams.set('sort', value);
+                      window.location.href = `/search?${queryParams.toString()}`;
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Newest" />
                     </SelectTrigger>
@@ -264,11 +303,30 @@ export function PropertiesContent({
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 content-visibility-auto mb-12">
                 {properties.map((property) => (
                   <PropertyCard key={property.id} property={property} />
                 ))}
               </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-center mb-16">
+                  <CustomPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => {
+                      // Build the current query parameters
+                      const queryParams = new URLSearchParams(window.location.search);
+
+                      // Update or add the page parameter
+                      queryParams.set('page', page.toString());
+
+                      // Navigate to the new URL with updated page parameter
+                      window.location.href = `/search?${queryParams.toString()}`;
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

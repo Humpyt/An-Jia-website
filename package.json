@@ -5,9 +5,15 @@
   "scripts": {
     "dev:proxy": "node wp-proxy.js & next dev",
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run optimize:pre && next build && npm run optimize:post",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "optimize:pre": "node scripts/create-placeholder.js",
+    "optimize:post": "node scripts/optimize-images.js",
+    "optimize:all": "npm run optimize:pre && npm run optimize:post && node scripts/optimize-css.js",
+    "generate:favicons": "node scripts/generate-favicons.js",
+    "vercel:deploy": "node scripts/vercel-deploy.js",
+    "vercel:build": "npm run generate:favicons && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -59,6 +65,7 @@
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
+    "rimraf": "^6.0.1",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
@@ -70,11 +77,13 @@
     "@types/node": "^22.14.1",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.2",
+    "clean-css": "^5.3.3",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
     "postcss": "^8",
+    "sharp": "^0.34.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }

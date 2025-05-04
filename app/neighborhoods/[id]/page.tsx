@@ -281,8 +281,6 @@ export default function NeighborhoodPage({ params }: NeighborhoodPageProps) {
               <Link href="/about">{translate("about")}</Link>
             </Button>
             <LanguageSwitcher />
-            <Button variant="outline" size="sm">{translate("sign_in")}</Button>
-            <Button size="sm">{translate("sign_up")}</Button>
           </div>
           <Button variant="outline" size="icon" className="md:hidden">
             <MapPin className="h-4 w-4" />

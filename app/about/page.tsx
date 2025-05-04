@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer"
 import { AboutContent } from "@/components/about-content"
 import { NavLinks } from "@/components/nav-links"
 import { AuthButtons } from "@/components/auth-buttons"
+import { PageHeader } from "@/components/page-header"
 
 export default function AboutPage() {
   return (
@@ -24,6 +25,13 @@ export default function AboutPage() {
           </div>
         </div>
       </header>
+
+      <PageHeader
+        title="About Us"
+        description="Connecting Kampala's Renters with Their Perfect Home"
+        height="medium"
+      />
+
       <AboutContent />
       <Footer />
     </div>

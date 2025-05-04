@@ -5,27 +5,27 @@ import { Button } from "@/components/ui/button"
 import { PropertyCategories } from "@/components/property-categories"
 import { FeaturedProperties } from "@/components/featured-properties"
 import { SearchBar } from "@/components/search-bar"
-import { NeighborhoodShowcase } from "@/components/neighborhood-showcase"
 import { useLanguage } from "@/components/language-switcher"
-import { ImportedPropertiesShowcase } from "@/components/imported-properties-showcase"
+
+import { LatestProperties } from "@/components/latest-properties"
 import Image from 'next/image';
 
 export function HomeContent() {
   const { translate } = useLanguage()
-  
+
   return (
     <>
       <section className="relative py-20 text-white">
         {/* Background image with overlay */}
         <div className="absolute inset-0 z-0">
-          <Image 
-            src="/images/04/WhatsApp Image 2025-04-09 at 11.37.58 AM (2).jpeg" 
-            alt="Kampala Skyline" 
-            fill 
+          <Image
+            src="/images/headers/luxury-property-header.jpg"
+            alt="Luxury Property"
+            fill
             className="object-cover"
             priority
             sizes="100vw"
-            quality={80}
+            quality={90}
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
@@ -42,8 +42,7 @@ export function HomeContent() {
 
       <PropertyCategories />
       <FeaturedProperties />
-      <ImportedPropertiesShowcase />
-      <NeighborhoodShowcase />
+      <LatestProperties />
 
       <section className="py-16 md:py-24 bg-rose-50">
         <div className="container">
