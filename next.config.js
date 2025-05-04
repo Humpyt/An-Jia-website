@@ -36,8 +36,7 @@ const nextConfig = {
     styledComponents: true,
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Enable SWC minification for improved performance
-  swcMinify: true,
+  // SWC minification is enabled by default in Next.js 15
   // Add rewrites for WordPress API
   async rewrites() {
     const wpApiUrl = process.env.WORDPRESS_API_URL || 'https://ajyxn.com/wp-json';
