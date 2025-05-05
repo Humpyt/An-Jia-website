@@ -33,69 +33,21 @@ export default async function PropertyPage(props: Props) {
   // Use the id from props directly in async operations
   const id = props.params.id;
 
-  // Fetch property data
-  let property: Property | null = null;
-  try {
-    console.log('Fetching property with ID:', id);
-
-    // First try the API endpoint
-    try {
-      console.log('Trying API endpoint first');
-      const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-      console.log(`Fetching property from: ${baseUrl}/api/properties/${id}`);
-
-      const response = await fetch(`${baseUrl}/api/properties/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        next: { revalidate: 60 } // Cache for 60 seconds
-      });
-
-      if (!response.ok) {
-        throw new Error(`API returned ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      property = result.property;
-      console.log('Fetched property from API:', property);
-    } catch (apiError) {
-      console.error('Error fetching from API:', apiError);
-
-      // Fallback to server action
-      console.log('Falling back to server action');
-      property = await getPropertyById(id);
-      console.log('Fetched property from server action:', property);
-    }
-
-    // If the property is null or undefined, throw 404
-    if (!property) {
-      console.log('Property not found');
-      notFound();
-    }
-
-    // No description enhancement - using original description
-    if (!property.description || property.description.trim() === '') {
-      // If there's no description, add a basic one
-      property.description = `${property.title} is a ${property.bedrooms}-bedroom ${property.propertyType} located in ${property.location}.`;
-    }
-
-    // Increment view count (fire and forget)
-    incrementPropertyViews(id).catch(console.error);
-  } catch (error) {
-    console.error("Error fetching property:", error);
-    if (!property) {
-      notFound();
-    }
-  }
-
-  // Ensure property is defined before rendering
-  if (!property) {
-    notFound();
-  }
+  // Create a minimal property object for initial rendering
+  // The client component will handle the actual data fetching
+  const property: Property = {
+    id,
+    title: "Loading Property...",
+    description: "Loading property details...",
+    location: "Loading...",
+    bedrooms: "0",
+    bathrooms: "0",
+    price: "0",
+    currency: "USD",
+    amenities: [],
+    images: ["/images/headers/property-detail.jpg"],
+    propertyType: "property"
+  };
 
   return (
     <div className="flex min-h-screen flex-col">

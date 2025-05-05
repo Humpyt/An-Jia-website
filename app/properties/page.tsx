@@ -52,88 +52,11 @@ export default async function PropertiesPage(props: {
       : undefined
   }
 
-  // Fetch properties with filters
-  let properties = [];
-  let totalCount = 0;
-  let totalPages = 0;
-  let error = null;
-
-  try {
-    console.log('Properties page: Fetching properties with filters');
-
-    // Build query parameters for the API request
-    const queryParams = new URLSearchParams({
-      limit: limit.toString(),
-      offset: offset.toString()
-    });
-
-    if (filters.location) queryParams.set('location', filters.location);
-    if (filters.minPrice) queryParams.set('minPrice', filters.minPrice.toString());
-    if (filters.maxPrice) queryParams.set('maxPrice', filters.maxPrice.toString());
-    if (filters.bedrooms) queryParams.set('bedrooms', filters.bedrooms.toString());
-    if (filters.bathrooms) queryParams.set('bathrooms', filters.bathrooms.toString());
-    if (filters.propertyType) queryParams.set('propertyType', filters.propertyType);
-    if (filters.amenities) queryParams.set('amenities', filters.amenities.join(','));
-
-    // Use our API endpoint instead of the server action
-    // Use absolute URL to ensure it works in all environments
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-    console.log(`Fetching properties from: ${baseUrl}/api/properties?${queryParams.toString()}`);
-
-    const response = await fetch(`${baseUrl}/api/properties?${queryParams.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 60 } // Cache for 60 seconds
-    });
-
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    properties = result.properties;
-    totalCount = result.totalCount;
-    totalPages = result.totalPages;
-
-    console.log(`Properties page: Fetched ${properties.length} properties out of ${totalCount} total (${totalPages} pages)`);
-  } catch (err: any) {
-    console.error('Error in properties page:', err);
-    error = err.message || 'Failed to fetch properties';
-
-    // Use the server action as fallback
-    try {
-      console.log('Properties page: Trying server action as fallback');
-      const result = await getPropertiesWithFilters({
-        limit,
-        offset,
-        filters: {
-          location: filters.location,
-          minPrice: filters.minPrice,
-          maxPrice: filters.maxPrice,
-          bedrooms: filters.bedrooms,
-          bathrooms: filters.bathrooms,
-          propertyType: filters.propertyType,
-          amenities: filters.amenities,
-        },
-      });
-
-      properties = result.properties;
-      totalCount = result.totalCount;
-      totalPages = result.totalPages;
-      error = null;
-
-      console.log(`Properties page (fallback): Fetched ${properties.length} properties out of ${totalCount} total (${totalPages} pages)`);
-    } catch (fallbackErr: any) {
-      console.error('Error in properties page fallback:', fallbackErr);
-      error = fallbackErr.message || 'Failed to fetch properties';
-    }
-  }
+  // Use empty initial data and let client component handle fetching
+  const properties = [];
+  const totalCount = 0;
+  const totalPages = 0;
+  const error = null;
 
   // Format data to match what PropertiesContent expects
   const propertiesData = {
