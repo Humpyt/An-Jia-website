@@ -20,6 +20,8 @@ const nextConfig = {
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
   env: {
     NEXT_PUBLIC_WORDPRESS_API_URL: process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://ajyxn.com/wp-json',
+    WORDPRESS_API_URL: process.env.WORDPRESS_API_URL || 'https://ajyxn.com/wp-json',
+    WORDPRESS_FALLBACK_API_URL: process.env.WORDPRESS_FALLBACK_API_URL || 'https://ajyxn.com/wp-json',
     VERCEL_ENV: process.env.VERCEL_ENV || 'development',
     VERCEL_URL: process.env.VERCEL_URL || 'localhost:3000',
   },
@@ -45,14 +47,73 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   // SWC minification is enabled by default in Next.js 15
-  // Add rewrites for WordPress API
+  // Add rewrites for WordPress API and admin
   async rewrites() {
-    const wpApiUrl = process.env.WORDPRESS_API_URL || 'https://ajyxn.com/wp-json';
+    // Use the WordPress hosting IP directly to avoid circular references
+    const wpHostingIP = '199.188.200.71';
     return [
+      // WordPress API
       {
         source: '/wp-json/:path*',
-        destination: `${wpApiUrl}/:path*`,
+        destination: `http://${wpHostingIP}/wp-json/:path*`,
       },
+      // WordPress Admin
+      {
+        source: '/wp-admin/:path*',
+        destination: `http://${wpHostingIP}/wp-admin/:path*`,
+      },
+      // WordPress Login
+      {
+        source: '/wp-login.php',
+        destination: `http://${wpHostingIP}/wp-login.php`,
+      },
+      // WordPress Content
+      {
+        source: '/wp-content/:path*',
+        destination: `http://${wpHostingIP}/wp-content/:path*`,
+      },
+      // WordPress Includes
+      {
+        source: '/wp-includes/:path*',
+        destination: `http://${wpHostingIP}/wp-includes/:path*`,
+      },
+      // WordPress AJAX
+      {
+        source: '/wp-ajax/:path*',
+        destination: `http://${wpHostingIP}/wp-ajax/:path*`,
+      },
+      // WordPress Uploads
+      {
+        source: '/uploads/:path*',
+        destination: `http://${wpHostingIP}/uploads/:path*`,
+      },
+    ];
+  },
+
+  // Add security headers including Content Security Policy
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co https://wp.ajyxn.com https://ajyxn.com; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          }
+        ]
+      }
     ];
   },
   // Configure webpack for better performance
