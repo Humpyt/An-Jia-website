@@ -48,45 +48,34 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
   const [property, setProperty] = useState<Property | null>(initialProperty || null);
   const [loading, setLoading] = useState(!initialProperty);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Function to fetch property details
   const fetchPropertyDetails = async () => {
     if (initialProperty) {
       return; // Skip fetching if we already have initial data
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      // First try to fetch from static JSON file
-      try {
-        const staticResponse = await fetch(`/data/property-${id}.json`);
-        if (staticResponse.ok) {
-          const staticData = await staticResponse.json();
-          setProperty(staticData.property);
-          console.log(`Loaded property ${id} from static JSON`);
-          return;
-        }
-      } catch (staticError) {
-        console.error('Error loading static property:', staticError);
-      }
-      
+      // Skip static JSON and go straight to API
+
       // If static JSON fails, try the API
       const apiResponse = await fetch(`/api/properties/${id}`);
-      
+
       if (!apiResponse.ok) {
         throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
       }
-      
+
       const data = await apiResponse.json();
       setProperty(data.property);
-      
+
       console.log(`Loaded property ${id} from API`);
     } catch (err: any) {
       console.error('Error fetching property details:', err);
       setError(err.message || 'Failed to fetch property details');
-      
+
       // If all else fails, use demo data
       setProperty({
         id,
@@ -114,12 +103,12 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
       setLoading(false);
     }
   };
-  
+
   // Fetch property details on initial load
   useEffect(() => {
     fetchPropertyDetails();
   }, [id]);
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -127,7 +116,7 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -135,7 +124,7 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
       </div>
     );
   }
-  
+
   if (!property) {
     return (
       <div className="text-center py-12">
@@ -146,13 +135,13 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{property.title}</h1>
         <p className="text-xl text-gray-600 mb-4">{property.location}</p>
-        
+
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="bg-blue-50 px-4 py-2 rounded-md">
             <span className="font-semibold">{property.bedrooms}</span> Bedrooms
@@ -169,7 +158,7 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
             <span className="font-semibold">{property.propertyType}</span>
           </div>
         </div>
-        
+
         <div className="text-2xl font-bold text-blue-600 mb-6">
           {property.currency} {parseInt(property.price).toLocaleString()}
           {property.paymentTerms && (
@@ -179,17 +168,17 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
           )}
         </div>
       </div>
-      
+
       {/* Image Gallery */}
       <PropertyImageGallery images={property.images} />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-2">
           {/* Property Description */}
           <PropertyDescription description={property.description} />
-          
+
           {/* Property Features */}
-          <PropertyFeatures 
+          <PropertyFeatures
             amenities={property.amenities}
             bedrooms={property.bedrooms}
             bathrooms={property.bathrooms}
@@ -198,10 +187,10 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
             floor={property.floor}
           />
         </div>
-        
+
         <div>
           {/* Property Contact */}
-          <PropertyContact 
+          <PropertyContact
             agent={property.agents}
             propertyId={property.id}
             propertyTitle={property.title}

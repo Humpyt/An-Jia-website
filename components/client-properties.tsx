@@ -33,14 +33,14 @@ interface ClientPropertiesProps {
 export function ClientProperties({ initialData }: ClientPropertiesProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const [properties, setProperties] = useState<Property[]>(initialData?.properties || []);
   const [totalCount, setTotalCount] = useState(initialData?.totalCount || 0);
   const [totalPages, setTotalPages] = useState(initialData?.totalPages || 1);
   const [currentPage, setCurrentPage] = useState(initialData?.currentPage || 1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialData?.error || null);
-  
+
   // Get filters from URL
   const location = searchParams.get('location') || '';
   const minPrice = searchParams.get('minPrice') || '';
@@ -48,108 +48,45 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
   const bedrooms = searchParams.get('bedrooms') || '';
   const bathrooms = searchParams.get('bathrooms') || '';
   const propertyType = searchParams.get('propertyType') || '';
-  
+
   // Function to fetch properties
   const fetchProperties = async (page: number = 1) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Build query parameters
       const queryParams = new URLSearchParams();
       queryParams.set('page', page.toString());
-      
+
       if (location) queryParams.set('location', location);
       if (minPrice) queryParams.set('minPrice', minPrice);
       if (maxPrice) queryParams.set('maxPrice', maxPrice);
       if (bedrooms) queryParams.set('bedrooms', bedrooms);
       if (bathrooms) queryParams.set('bathrooms', bathrooms);
       if (propertyType) queryParams.set('propertyType', propertyType);
-      
-      // First try to fetch from static JSON file
-      try {
-        const staticResponse = await fetch(`/data/properties.json`);
-        if (staticResponse.ok) {
-          const staticData = await staticResponse.json();
-          
-          // Apply client-side filtering
-          let filteredProperties = staticData.properties;
-          
-          if (location) {
-            filteredProperties = filteredProperties.filter((p: Property) => 
-              p.location.toLowerCase().includes(location.toLowerCase())
-            );
-          }
-          
-          if (minPrice) {
-            const min = parseInt(minPrice);
-            filteredProperties = filteredProperties.filter((p: Property) => 
-              parseInt(p.price) >= min
-            );
-          }
-          
-          if (maxPrice) {
-            const max = parseInt(maxPrice);
-            filteredProperties = filteredProperties.filter((p: Property) => 
-              parseInt(p.price) <= max
-            );
-          }
-          
-          if (bedrooms && bedrooms !== 'any') {
-            filteredProperties = filteredProperties.filter((p: Property) => 
-              p.bedrooms === bedrooms
-            );
-          }
-          
-          if (bathrooms && bathrooms !== 'any') {
-            filteredProperties = filteredProperties.filter((p: Property) => 
-              p.bathrooms === bathrooms
-            );
-          }
-          
-          if (propertyType && propertyType !== 'any') {
-            filteredProperties = filteredProperties.filter((p: Property) => 
-              p.propertyType === propertyType
-            );
-          }
-          
-          // Apply pagination
-          const itemsPerPage = 6;
-          const offset = (page - 1) * itemsPerPage;
-          const paginatedProperties = filteredProperties.slice(offset, offset + itemsPerPage);
-          
-          // Update state
-          setProperties(paginatedProperties);
-          setTotalCount(filteredProperties.length);
-          setTotalPages(Math.ceil(filteredProperties.length / itemsPerPage));
-          setCurrentPage(page);
-          
-          console.log(`Loaded ${paginatedProperties.length} properties from static JSON`);
-          return;
-        }
-      } catch (staticError) {
-        console.error('Error loading static properties:', staticError);
-      }
-      
+
+      // Skip static JSON and go straight to API
+
       // If static JSON fails, try the API
       const apiResponse = await fetch(`/api/properties?${queryParams.toString()}`);
-      
+
       if (!apiResponse.ok) {
         throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
       }
-      
+
       const data = await apiResponse.json();
-      
+
       setProperties(data.properties);
       setTotalCount(data.totalCount);
       setTotalPages(data.totalPages);
       setCurrentPage(page);
-      
+
       console.log(`Loaded ${data.properties.length} properties from API`);
     } catch (err: any) {
       console.error('Error fetching properties:', err);
       setError(err.message || 'Failed to fetch properties');
-      
+
       // If all else fails, use demo data
       setProperties([
         {
@@ -184,30 +121,30 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
       setLoading(false);
     }
   };
-  
+
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    
+
     // Update URL with new page
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', page.toString());
-    
+
     // Update the URL without refreshing the page
     router.push(`/properties?${params.toString()}`);
-    
+
     // Fetch properties for the new page
     fetchProperties(page);
-    
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   // Fetch properties on initial load and when filters change
   useEffect(() => {
     fetchProperties(currentPage);
   }, [location, minPrice, maxPrice, bedrooms, bathrooms, propertyType]);
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       {error && (
@@ -215,7 +152,7 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
           <p>{error}</p>
         </div>
       )}
-      
+
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <Spinner size="lg" />
@@ -227,7 +164,7 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
-          
+
           {totalPages > 1 && (
             <div className="mt-8">
               <Pagination
