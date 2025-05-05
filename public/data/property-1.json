@@ -1,0 +1,33 @@
+{
+  "property": {
+    "id": "1",
+    "title": "Modern 3 Bedroom Apartment in Downtown",
+    "description": "<p>A stunning modern apartment featuring 3 bedrooms and state-of-the-art amenities including a spacious living area, modern kitchen, and private balcony with city views.</p><p>This property is located in the heart of downtown, offering easy access to shopping, dining, and entertainment options. The apartment features high-quality finishes, including hardwood floors, granite countertops, and stainless steel appliances.</p><p>The building includes a fitness center, swimming pool, and 24-hour security for residents' convenience and safety.</p>",
+    "location": "Downtown",
+    "floor": "5",
+    "bedrooms": "3",
+    "bathrooms": "2",
+    "price": "350000",
+    "currency": "USD",
+    "paymentTerms": "Monthly",
+    "amenities": ["Air Conditioning", "Parking", "Security", "Swimming Pool", "Fitness Center", "Balcony", "Hardwood Floors", "Granite Countertops", "Stainless Steel Appliances"],
+    "ownerName": "John Smith",
+    "ownerContact": "+256 701 234 567",
+    "isPremium": true,
+    "images": [
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
+      "https://images.unsplash.com/photo-1560185007-c5ca9d2c0862?w=800"
+    ],
+    "propertyType": "apartment",
+    "squareMeters": "120",
+    "agents": {
+      "id": "agent-1",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "phone": "+256 701 234 567",
+      "company": "An Jia You Xuan Real Estate"
+    }
+  }
+}

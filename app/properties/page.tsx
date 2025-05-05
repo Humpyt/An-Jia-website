@@ -4,9 +4,11 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { Footer } from "@/components/footer"
 import { NavLinks } from "@/components/nav-links"
 import { AuthButtons } from "@/components/auth-buttons"
-import { PropertiesContent } from "@/components/properties-content"
 import { PageHeader } from "@/components/page-header"
-// Import the WordPress properties action instead of the mock data one
+import { Suspense } from "react"
+import { Spinner } from "@/components/spinner"
+import { ClientProperties } from "@/components/client-properties"
+// Import the WordPress properties action as fallback
 import { getPropertiesWithFilters } from "@/app/actions/wordpress-properties"
 
 export default async function PropertiesPage(props: {
@@ -163,7 +165,19 @@ export default async function PropertiesPage(props: {
         height="medium"
       />
 
-      <PropertiesContent initialProperties={propertiesData} searchParams={params} />
+      <Suspense fallback={
+        <div className="flex justify-center items-center h-64">
+          <Spinner size="lg" />
+        </div>
+      }>
+        <ClientProperties initialData={{
+          properties: properties || [],
+          totalCount,
+          totalPages,
+          currentPage: page,
+          error
+        }} />
+      </Suspense>
 
       <Footer />
     </div>

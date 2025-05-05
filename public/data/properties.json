@@ -1,0 +1,182 @@
+{
+  "properties": [
+    {
+      "id": "1",
+      "title": "Modern 3 Bedroom Apartment in Downtown",
+      "description": "<p>A stunning modern apartment featuring 3 bedrooms and state-of-the-art amenities including a spacious living area, modern kitchen, and private balcony with city views.</p>",
+      "location": "Downtown",
+      "floor": "5",
+      "bedrooms": "3",
+      "bathrooms": "2",
+      "price": "350000",
+      "currency": "USD",
+      "paymentTerms": "Monthly",
+      "amenities": ["Air Conditioning", "Parking", "Security", "Swimming Pool"],
+      "ownerName": "John Smith",
+      "ownerContact": "+256 701 234 567",
+      "isPremium": true,
+      "images": [
+        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
+        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800"
+      ],
+      "propertyType": "apartment",
+      "squareMeters": "120"
+    },
+    {
+      "id": "2",
+      "title": "Luxury Villa with 5 Bedrooms in Westlands",
+      "description": "<p>An exclusive villa offering premium living with 5 bedrooms and luxury finishes. Features include a swimming pool, garden, modern kitchen, and spacious living areas.</p>",
+      "location": "Westlands",
+      "floor": "0",
+      "bedrooms": "5",
+      "bathrooms": "3",
+      "price": "750000",
+      "currency": "USD",
+      "paymentTerms": "Yearly",
+      "amenities": ["Garden", "Pool", "Smart Home", "Security System"],
+      "ownerName": "Robert Johnson",
+      "ownerContact": "+256 702 345 678",
+      "isPremium": true,
+      "images": [
+        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
+        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800"
+      ],
+      "propertyType": "house",
+      "squareMeters": "350"
+    },
+    {
+      "id": "3",
+      "title": "Commercial Space in Business District",
+      "description": "<p>Prime commercial space in the heart of the business district. Perfect for office or retail with high foot traffic and excellent visibility.</p>",
+      "location": "Business District",
+      "floor": "2",
+      "units": "5",
+      "bedrooms": "0",
+      "bathrooms": "2",
+      "price": "500000",
+      "currency": "USD",
+      "paymentTerms": "Yearly",
+      "amenities": ["Parking", "Security", "Elevator", "Air Conditioning"],
+      "ownerName": "Commercial Properties Ltd",
+      "ownerContact": "+256 704 567 890",
+      "isPremium": false,
+      "images": [
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800"
+      ],
+      "propertyType": "commercial",
+      "squareMeters": "200"
+    },
+    {
+      "id": "4",
+      "title": "Cozy 2 Bedroom Apartment near Park",
+      "description": "<p>A beautifully designed 2 bedroom apartment located near the central park. Features include a modern kitchen, cozy living room, and balcony with park views.</p>",
+      "location": "Parkview",
+      "floor": "3",
+      "bedrooms": "2",
+      "bathrooms": "1",
+      "price": "250000",
+      "currency": "USD",
+      "paymentTerms": "Monthly",
+      "amenities": ["Parking", "Security", "Near Park", "Public Transport"],
+      "ownerName": "Sarah Johnson",
+      "ownerContact": "+256 706 789 012",
+      "isPremium": false,
+      "images": [
+        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800",
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800"
+      ],
+      "propertyType": "apartment",
+      "squareMeters": "85"
+    },
+    {
+      "id": "5",
+      "title": "Vacant Land for Development",
+      "description": "<p>Prime vacant land perfect for residential or commercial development. Located in a growing area with excellent investment potential.</p>",
+      "location": "Eastgate",
+      "bedrooms": "0",
+      "bathrooms": "0",
+      "price": "200000",
+      "currency": "USD",
+      "paymentTerms": "Full Payment",
+      "amenities": ["Road Access", "Utilities Available", "Flat Terrain"],
+      "ownerName": "Development Properties Inc",
+      "ownerContact": "+256 707 890 123",
+      "isPremium": true,
+      "images": [
+        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800",
+        "https://images.unsplash.com/photo-1500076656116-558758c991c1?w=800"
+      ],
+      "propertyType": "land",
+      "squareMeters": "1000"
+    },
+    {
+      "id": "6",
+      "title": "Modern Office Space in Tech Hub",
+      "description": "<p>Contemporary office space in the heart of the tech district. Open floor plan with meeting rooms, kitchen area, and high-speed internet connectivity.</p>",
+      "location": "Tech District",
+      "floor": "4",
+      "bedrooms": "0",
+      "bathrooms": "2",
+      "price": "450000",
+      "currency": "USD",
+      "paymentTerms": "Yearly",
+      "amenities": ["High-Speed Internet", "Meeting Rooms", "Security", "Parking"],
+      "ownerName": "Tech Properties Ltd",
+      "ownerContact": "+256 708 901 234",
+      "isPremium": true,
+      "images": [
+        "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=800",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800"
+      ],
+      "propertyType": "commercial",
+      "squareMeters": "180"
+    },
+    {
+      "id": "7",
+      "title": "Luxury Penthouse with City Views",
+      "description": "<p>Stunning penthouse apartment with panoramic city views. Features include a private terrace, high-end finishes, and exclusive amenities.</p>",
+      "location": "City Center",
+      "floor": "20",
+      "bedrooms": "4",
+      "bathrooms": "3",
+      "price": "900000",
+      "currency": "USD",
+      "paymentTerms": "Monthly",
+      "amenities": ["Private Terrace", "Concierge", "Gym", "Spa"],
+      "ownerName": "Luxury Living Inc",
+      "ownerContact": "+256 709 012 345",
+      "isPremium": true,
+      "images": [
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800"
+      ],
+      "propertyType": "apartment",
+      "squareMeters": "250"
+    },
+    {
+      "id": "8",
+      "title": "Family Home in Suburban Area",
+      "description": "<p>Spacious family home in a quiet suburban neighborhood. Features include a large garden, modern kitchen, and family-friendly layout.</p>",
+      "location": "Suburbia",
+      "floor": "0",
+      "bedrooms": "4",
+      "bathrooms": "2",
+      "price": "380000",
+      "currency": "USD",
+      "paymentTerms": "Monthly",
+      "amenities": ["Garden", "Garage", "Family Room", "Quiet Neighborhood"],
+      "ownerName": "Family Homes Ltd",
+      "ownerContact": "+256 710 123 456",
+      "isPremium": false,
+      "images": [
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
+        "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800"
+      ],
+      "propertyType": "house",
+      "squareMeters": "220"
+    }
+  ],
+  "totalCount": 8,
+  "totalPages": 1
+}

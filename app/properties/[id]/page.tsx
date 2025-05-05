@@ -3,7 +3,6 @@ import { notFound } from "next/navigation"
 import { getPropertyById, incrementPropertyViews } from "@/app/actions/wordpress-properties"
 import Link from "next/link"
 import Image from "next/image"
-import PropertyDetail from "@/components/property-detail"
 import type { Property } from "@/app/types/property";
 import { Footer } from "@/components/footer"
 import { NavLinks } from "@/components/nav-links"
@@ -11,6 +10,8 @@ import { AuthButtons } from "@/components/auth-buttons"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { PageHeader } from "@/components/page-header"
+import { Spinner } from "@/components/spinner"
+import { ClientPropertyDetails } from "@/components/client-property-details"
 
 // Description enhancement removed
 
@@ -122,15 +123,12 @@ export default async function PropertyPage(props: Props) {
       <ErrorBoundary>
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 w-64 bg-gray-200 rounded"></div>
-              <div className="h-4 w-48 bg-gray-200 rounded"></div>
-            </div>
+            <Spinner size="lg" />
           </div>
         }>
           {/* Use a key to ensure React re-renders when property changes */}
           <div key={property.id}>
-            <PropertyDetail property={property} />
+            <ClientPropertyDetails id={id} initialProperty={property} />
           </div>
         </Suspense>
       </ErrorBoundary>
