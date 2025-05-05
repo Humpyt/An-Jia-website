@@ -58,19 +58,35 @@ export default async function PropertiesPage(props: {
 
   try {
     console.log('Properties page: Fetching properties with filters');
-    const result = await getPropertiesWithFilters({
-      limit,
-      offset,
-      filters: {
-        location: filters.location,
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-        bedrooms: filters.bedrooms,
-        bathrooms: filters.bathrooms,
-        propertyType: filters.propertyType,
-        amenities: filters.amenities,
-      },
+
+    // Build query parameters for the API request
+    const queryParams = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString()
     });
+
+    if (filters.location) queryParams.set('location', filters.location);
+    if (filters.minPrice) queryParams.set('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice) queryParams.set('maxPrice', filters.maxPrice.toString());
+    if (filters.bedrooms) queryParams.set('bedrooms', filters.bedrooms.toString());
+    if (filters.bathrooms) queryParams.set('bathrooms', filters.bathrooms.toString());
+    if (filters.propertyType) queryParams.set('propertyType', filters.propertyType);
+    if (filters.amenities) queryParams.set('amenities', filters.amenities.join(','));
+
+    // Use our API endpoint instead of the server action
+    const response = await fetch(`/api/properties?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 60 } // Cache for 60 seconds
+    });
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
 
     properties = result.properties;
     totalCount = result.totalCount;
@@ -80,6 +96,34 @@ export default async function PropertiesPage(props: {
   } catch (err: any) {
     console.error('Error in properties page:', err);
     error = err.message || 'Failed to fetch properties';
+
+    // Use the server action as fallback
+    try {
+      console.log('Properties page: Trying server action as fallback');
+      const result = await getPropertiesWithFilters({
+        limit,
+        offset,
+        filters: {
+          location: filters.location,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          bedrooms: filters.bedrooms,
+          bathrooms: filters.bathrooms,
+          propertyType: filters.propertyType,
+          amenities: filters.amenities,
+        },
+      });
+
+      properties = result.properties;
+      totalCount = result.totalCount;
+      totalPages = result.totalPages;
+      error = null;
+
+      console.log(`Properties page (fallback): Fetched ${properties.length} properties out of ${totalCount} total (${totalPages} pages)`);
+    } catch (fallbackErr: any) {
+      console.error('Error in properties page fallback:', fallbackErr);
+      error = fallbackErr.message || 'Failed to fetch properties';
+    }
   }
 
   // Format data to match what PropertiesContent expects

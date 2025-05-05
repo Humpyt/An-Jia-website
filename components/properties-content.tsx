@@ -36,7 +36,7 @@ export function PropertiesContent({
   const [totalPages, setTotalPages] = useState(initialProperties.totalPages || 1)
   const itemsPerPage = 12
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialProperties.error)
 
   // Form state
   const [filters, setFilters] = useState({
