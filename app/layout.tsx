@@ -53,6 +53,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Content Security Policy */}
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co https://wp.ajyxn.com https://ajyxn.com https://an-jia-website-gr9b2nwk0-cavemos-projects.vercel.app; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
+        />
+
         {/* Preload critical fonts */}
         <link
           rel="preload"
@@ -71,8 +77,8 @@ export default function RootLayout({
         />
 
         {/* Preconnect to external domains */}
-        <link rel="preconnect" href="http://anjia-wordpress.local" />
-        <link rel="dns-prefetch" href="http://anjia-wordpress.local" />
+        <link rel="preconnect" href="https://wp.ajyxn.com" />
+        <link rel="dns-prefetch" href="https://wp.ajyxn.com" />
 
         {/* Emergency fix for stray checkmarks */}
         <style dangerouslySetInnerHTML={{ __html: `

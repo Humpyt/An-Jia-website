@@ -51,7 +51,8 @@ export function FeaturedProperties() {
   useEffect(() => {
     const fetchFeaturedProperties = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/anjia/v1/featured-properties`)
+        // Use our proxy API endpoint instead of directly calling WordPress
+        const response = await fetch('/api/featured-properties')
         if (!response.ok) throw new Error('Failed to fetch')
         const data = await response.json()
 
@@ -70,6 +71,7 @@ export function FeaturedProperties() {
 
         setProperties(propertiesWithPremium)
       } catch (err) {
+        console.error('Error fetching featured properties:', err)
         setError(err instanceof Error ? err.message : 'Failed to load properties')
       } finally {
         setLoading(false)
