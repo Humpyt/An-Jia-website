@@ -74,7 +74,14 @@ export default async function PropertiesPage(props: {
     if (filters.amenities) queryParams.set('amenities', filters.amenities.join(','));
 
     // Use our API endpoint instead of the server action
-    const response = await fetch(`/api/properties?${queryParams.toString()}`, {
+    // Use absolute URL to ensure it works in all environments
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+    console.log(`Fetching properties from: ${baseUrl}/api/properties?${queryParams.toString()}`);
+
+    const response = await fetch(`${baseUrl}/api/properties?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
