@@ -35,14 +35,45 @@ export default async function PropertyPage(props: Props) {
   // Fetch property data
   let property: Property | null = null;
   try {
-    console.log('Fetching property with ID:', id)
-    property = await getPropertyById(id)
-    console.log('Fetched property:', property)
+    console.log('Fetching property with ID:', id);
+
+    // First try the API endpoint
+    try {
+      console.log('Trying API endpoint first');
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+      console.log(`Fetching property from: ${baseUrl}/api/properties/${id}`);
+
+      const response = await fetch(`${baseUrl}/api/properties/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        next: { revalidate: 60 } // Cache for 60 seconds
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      property = result.property;
+      console.log('Fetched property from API:', property);
+    } catch (apiError) {
+      console.error('Error fetching from API:', apiError);
+
+      // Fallback to server action
+      console.log('Falling back to server action');
+      property = await getPropertyById(id);
+      console.log('Fetched property from server action:', property);
+    }
 
     // If the property is null or undefined, throw 404
     if (!property) {
-      console.log('Property not found')
-      notFound()
+      console.log('Property not found');
+      notFound();
     }
 
     // No description enhancement - using original description
@@ -52,17 +83,17 @@ export default async function PropertyPage(props: Props) {
     }
 
     // Increment view count (fire and forget)
-    incrementPropertyViews(id).catch(console.error)
+    incrementPropertyViews(id).catch(console.error);
   } catch (error) {
-    console.error("Error fetching property:", error)
+    console.error("Error fetching property:", error);
     if (!property) {
-        notFound();
+      notFound();
     }
   }
 
   // Ensure property is defined before rendering
   if (!property) {
-      notFound();
+    notFound();
   }
 
   return (
