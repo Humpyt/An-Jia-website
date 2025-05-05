@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { fetchWithTimeout } from '@/lib/wordpress';
+import { GET as createGetHandler } from '@/lib/api-utils';
 
 const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'http://anjia-wordpress.local/wp-json';
 
-export async function GET() {
+// Using our custom route handler wrapper for correct typing
+export const GET = createGetHandler(
+  async () => {
   try {
     // Fetch all neighborhoods from WordPress
     const response = await fetchWithTimeout(`${WORDPRESS_API_URL}/wp/v2/neighborhood`, {
@@ -56,4 +59,5 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+  }
+)

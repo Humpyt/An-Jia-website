@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPropertiesWithFilters } from '@/lib/wordpress';
 import { properties as mockProperties } from '@/lib/property-data';
+import { GET as createGetHandler } from '@/lib/api-utils';
 
-export async function GET() {
+// Using our custom route handler wrapper for correct typing
+export const GET = createGetHandler(
+  async () => {
   try {
     // Get latest properties, limit to 12, sorted by newest first
     const result = await getPropertiesWithFilters({
@@ -64,4 +67,5 @@ export async function GET() {
       error: 'WordPress API error, using fallback data'
     });
   }
-}
+  }
+)

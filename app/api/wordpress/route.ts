@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GET as createGetHandler, POST as createPostHandler, PUT as createPutHandler, DELETE as createDeleteHandler } from '@/lib/api-utils'
 
 const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'http://anjia-wordpress.local/wp-json'
 const FALLBACK_API_URL = process.env.WORDPRESS_FALLBACK_API_URL || 'http://localhost/anjia-wordpress/wp-json'
@@ -14,21 +15,22 @@ const API_CACHE = new Map();
 const CACHE_DURATION = 1000 * 60 * 15; // 15 minutes default cache
 const STALE_WHILE_REVALIDATE = 1000 * 60 * 60; // 1 hour stale-while-revalidate
 
-export async function GET(request: NextRequest) {
-  return handleRequest(request)
-}
+// Using our custom route handler wrapper for correct typing
+export const GET = createGetHandler(
+  (request) => handleRequest(request)
+);
 
-export async function POST(request: NextRequest) {
-  return handleRequest(request)
-}
+export const POST = createPostHandler(
+  (request) => handleRequest(request)
+);
 
-export async function PUT(request: NextRequest) {
-  return handleRequest(request)
-}
+export const PUT = createPutHandler(
+  (request) => handleRequest(request)
+);
 
-export async function DELETE(request: NextRequest) {
-  return handleRequest(request)
-}
+export const DELETE = createDeleteHandler(
+  (request) => handleRequest(request)
+);
 
 // Function to refresh cache in background
 async function refreshCache(url: string, method: string) {
