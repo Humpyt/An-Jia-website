@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Building, MapPin } from "lucide-react"
 
 import { getPropertiesByNeighborhood } from "@/app/actions/wordpress-neighborhoods"
-import PropertyCard from "@/components/property-card"
+import { PropertyCard } from "@/components/property-card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { LocationFilters } from "@/components/location-filters"

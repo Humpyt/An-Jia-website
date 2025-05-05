@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fetchWithTimeout } from '@/lib/wordpress';
+import fetch from 'node-fetch';
 
 const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'http://anjia-wordpress.local/wp-json';
 
@@ -12,7 +12,7 @@ export async function POST(
     const data = await request.json();
 
     // Submit rating to WordPress
-    const response = await fetchWithTimeout(
+    const response = await fetch(
       `${WORDPRESS_API_URL}/anjia/v1/properties/${propertyId}/rate`,
       {
         method: 'POST',
