@@ -19,9 +19,12 @@ const nextConfig = {
   },
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
   env: {
-    NEXT_PUBLIC_WORDPRESS_API_URL: process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://ajyxn.com/wp-json',
-    WORDPRESS_API_URL: process.env.WORDPRESS_API_URL || 'https://ajyxn.com/wp-json',
-    WORDPRESS_FALLBACK_API_URL: process.env.WORDPRESS_FALLBACK_API_URL || 'https://ajyxn.com/wp-json',
+    // Use our proxy API endpoints instead of direct WordPress URLs
+    NEXT_PUBLIC_WORDPRESS_API_URL: process.env.NEXT_PUBLIC_WORDPRESS_API_URL || '/api/wordpress-proxy',
+    WORDPRESS_API_URL: process.env.WORDPRESS_API_URL || 'http://wp.ajyxn.com/wp-json',
+    WORDPRESS_FALLBACK_API_URL: process.env.WORDPRESS_FALLBACK_API_URL || 'http://199.188.200.71/wp-json',
+    // Original WordPress URL for server-side requests (using HTTP)
+    WORDPRESS_DIRECT_API_URL: 'http://wp.ajyxn.com/wp-json',
     VERCEL_ENV: process.env.VERCEL_ENV || 'development',
     VERCEL_URL: process.env.VERCEL_URL || 'localhost:3000',
   },
@@ -98,7 +101,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co https://wp.ajyxn.com https://ajyxn.com; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co http://wp.ajyxn.com https://wp.ajyxn.com https://ajyxn.com http://199.188.200.71; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
           },
           {
             key: 'X-Content-Type-Options',

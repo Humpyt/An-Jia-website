@@ -56,7 +56,7 @@ export default function RootLayout({
         {/* Content Security Policy */}
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co https://wp.ajyxn.com https://ajyxn.com https://an-jia-website-gr9b2nwk0-cavemos-projects.vercel.app; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co http://wp.ajyxn.com https://wp.ajyxn.com https://ajyxn.com http://199.188.200.71 https://an-jia-website-gr9b2nwk0-cavemos-projects.vercel.app; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
         />
 
         {/* Preload critical fonts */}
