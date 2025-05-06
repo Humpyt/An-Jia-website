@@ -53,124 +53,98 @@ export function ImprovedProperties({ initialData }: ImprovedPropertiesProps) {
   const bathrooms = searchParams.get('bathrooms') || '';
   const propertyType = searchParams.get('propertyType') || '';
 
-  // Function to fetch properties with enhanced error handling
-  const fetchProperties = async (page: number = 1, retryCount: number = 0) => {
+  // Function to load properties directly from mock data
+  const loadProperties = (page: number = 1) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Build query parameters
-      const queryParams = new URLSearchParams();
-      queryParams.set('page', page.toString());
+      console.log(`Loading properties from mock data for page ${page}`);
 
-      if (location) queryParams.set('location', location);
-      if (minPrice) queryParams.set('minPrice', minPrice);
-      if (maxPrice) queryParams.set('maxPrice', maxPrice);
-      if (bedrooms) queryParams.set('bedrooms', bedrooms);
-      if (bathrooms) queryParams.set('bathrooms', bathrooms);
-      if (propertyType) queryParams.set('propertyType', propertyType);
+      // Import mock data directly
+      import('@/lib/property-data').then(({ properties: mockProperties }) => {
+        // Apply filters
+        let filteredProperties = [...mockProperties];
 
-      console.log(`Fetching properties with params: ${queryParams.toString()}`);
-
-      // Add cache-busting parameter to avoid stale data
-      const cacheBuster = `cacheBust=${Date.now()}`;
-
-      // Use our new reliable API endpoint
-      const apiUrl = `/api/properties-reliable?${queryParams.toString()}&${cacheBuster}`;
-
-      // Fetch with timeout to avoid hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-      const response = await fetch(apiUrl, {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        // Disable cache to ensure fresh data
-        cache: 'no-store',
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`API returned ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log(`Successfully fetched from API: ${data.properties?.length || 0} properties`);
-
-      // Validate data structure
-      if (!data.properties || !Array.isArray(data.properties)) {
-        console.warn('API returned invalid data structure:', data);
-        throw new Error('Invalid data structure from API');
-      }
-
-      // Ensure all properties have the required fields
-      const validatedProperties = data.properties.map((prop: any) => ({
-        ...prop,
-        // Ensure these fields exist with fallbacks
-        id: prop.id || `temp-${Math.random().toString(36).substring(2, 9)}`,
-        title: prop.title || 'Property Listing',
-        location: prop.location || 'Location not specified',
-        bedrooms: prop.bedrooms || '0',
-        bathrooms: prop.bathrooms || '0',
-        price: prop.price || '0',
-        currency: prop.currency || 'CNY',
-        amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
-        images: Array.isArray(prop.images) && prop.images.length > 0
-          ? prop.images
-          : ['/images/properties/property-placeholder.svg']
-      }));
-
-      setProperties(validatedProperties);
-      setTotalCount(data.totalCount || validatedProperties.length);
-      setTotalPages(data.totalPages || Math.ceil(validatedProperties.length / 12));
-      setCurrentPage(page);
-
-      console.log(`Loaded ${validatedProperties.length} properties from API`);
-    } catch (err: any) {
-      console.error(`Error fetching properties (attempt ${retryCount + 1}):`, err);
-
-      // Retry logic - try up to 2 more times with exponential backoff
-      if (retryCount < 2) {
-        console.log(`Retrying fetch (attempt ${retryCount + 2})...`);
-        setTimeout(() => {
-          fetchProperties(page, retryCount + 1);
-        }, 1000 * Math.pow(2, retryCount)); // 1s, 2s, 4s backoff
-        return;
-      }
-
-      setError(err.message || 'Failed to fetch properties');
-      console.log('All retry attempts failed, using fallback data');
-
-      // If we have initial data, use that instead of the demo data
-      if (initialData?.properties && initialData.properties.length > 0) {
-        console.log('Using initial data as fallback');
-        setProperties(initialData.properties);
-        setTotalCount(initialData.totalCount);
-        setTotalPages(initialData.totalPages);
-        setCurrentPage(initialData.currentPage);
-      } else {
-        // If all else fails, use hardcoded demo data
-        console.log('Using hardcoded demo data as final fallback');
-        try {
-          const propertyDataModule = await import('@/lib/property-data');
-          const fallbackProperties = propertyDataModule.properties || [];
-          if (fallbackProperties.length > 0) {
-            console.log('Successfully loaded fallback properties from property-data.js');
-            setProperties(fallbackProperties);
-            setTotalCount(fallbackProperties.length);
-            setTotalPages(Math.ceil(fallbackProperties.length / 12));
-            setCurrentPage(1);
-            return;
-          }
-        } catch (importError) {
-          console.error('Error importing fallback properties:', importError);
+        // Filter by location
+        if (location) {
+          filteredProperties = filteredProperties.filter(p =>
+            p.location.toLowerCase().includes(location.toLowerCase())
+          );
         }
-      }
-    } finally {
+
+        // Filter by price range
+        if (minPrice) {
+          const min = parseInt(minPrice);
+          filteredProperties = filteredProperties.filter(p => parseInt(p.price) >= min);
+        }
+
+        if (maxPrice) {
+          const max = parseInt(maxPrice);
+          filteredProperties = filteredProperties.filter(p => parseInt(p.price) <= max);
+        }
+
+        // Filter by bedrooms
+        if (bedrooms && bedrooms !== 'any') {
+          filteredProperties = filteredProperties.filter(p => p.bedrooms === bedrooms);
+        }
+
+        // Filter by bathrooms
+        if (bathrooms && bathrooms !== 'any') {
+          filteredProperties = filteredProperties.filter(p => p.bathrooms === bathrooms);
+        }
+
+        // Filter by property type
+        if (propertyType && propertyType !== 'any') {
+          filteredProperties = filteredProperties.filter(p => p.propertyType === propertyType);
+        }
+
+        // Apply pagination
+        const limit = 12;
+        const offset = (page - 1) * limit;
+        const paginatedProperties = filteredProperties.slice(offset, offset + limit);
+
+        // Ensure all properties have the required fields
+        const validatedProperties = paginatedProperties.map((prop) => ({
+          ...prop,
+          // Ensure these fields exist with fallbacks
+          id: prop.id || `temp-${Math.random().toString(36).substring(2, 9)}`,
+          title: prop.title || 'Property Listing',
+          location: prop.location || 'Location not specified',
+          bedrooms: prop.bedrooms || '0',
+          bathrooms: prop.bathrooms || '0',
+          price: prop.price || '0',
+          currency: prop.currency || 'CNY',
+          amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
+          images: Array.isArray(prop.images) && prop.images.length > 0
+            ? prop.images
+            : ['/images/properties/property-placeholder.jpg']
+        }));
+
+        setProperties(validatedProperties);
+        setTotalCount(filteredProperties.length);
+        setTotalPages(Math.ceil(filteredProperties.length / limit));
+        setCurrentPage(page);
+
+        console.log(`Loaded ${validatedProperties.length} properties from mock data`);
+      }).catch(error => {
+        console.error('Error importing mock data:', error);
+        setError('Failed to load property data');
+
+        // Use initial data as fallback if available
+        if (initialData?.properties && initialData.properties.length > 0) {
+          console.log('Using initial data as fallback');
+          setProperties(initialData.properties);
+          setTotalCount(initialData.totalCount);
+          setTotalPages(initialData.totalPages);
+          setCurrentPage(initialData.currentPage);
+        }
+      }).finally(() => {
+        setLoading(false);
+      });
+    } catch (err: any) {
+      console.error('Error in loadProperties:', err);
+      setError(err.message || 'Failed to load properties');
       setLoading(false);
     }
   };
@@ -186,16 +160,16 @@ export function ImprovedProperties({ initialData }: ImprovedPropertiesProps) {
     // Update the URL without refreshing the page
     router.push(`/properties?${params.toString()}`);
 
-    // Fetch properties for the new page
-    fetchProperties(page);
+    // Load properties for the new page
+    loadProperties(page);
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Fetch properties on initial load and when filters change
+  // Load properties on initial load and when filters change
   useEffect(() => {
-    fetchProperties(currentPage);
+    loadProperties(currentPage);
   }, [location, minPrice, maxPrice, bedrooms, bathrooms, propertyType]);
 
   return (
