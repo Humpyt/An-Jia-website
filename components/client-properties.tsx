@@ -290,7 +290,11 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
           currency: prop.currency || 'USD',
           amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
           images: Array.isArray(prop.images) && prop.images.length > 0
-            ? prop.images
+            ? prop.images.map(img =>
+                img.includes('unsplash.com')
+                  ? `/images/properties/fallback-${Math.floor(Math.random() * 3) + 1}.svg`
+                  : img
+              )
             : ['/images/properties/property-placeholder.svg']
         }));
 

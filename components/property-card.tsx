@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Heart } from "lucide-react"
 import { Star } from "lucide-react"
 import { useLanguage } from "@/components/language-switcher"
 import { memo, useState } from "react"
+import { ResilientImage } from "@/components/resilient-image"
+import { formatPrice } from "@/lib/utils"
 
 interface PropertyCardProps {
   property: any
@@ -40,18 +41,7 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
 
   const imageUrl = getImageUrl();
 
-  // Format price with thousand separator
-  const formatPrice = (price: string, currency: string) => {
-    if (!price) return 'Price on request';
-
-    const numericPrice = parseInt(price)
-    if (isNaN(numericPrice)) return 'Price on request';
-
-    if (currency === "UGX") {
-      return `UGX ${numericPrice.toLocaleString()}`
-    }
-    return `$${numericPrice.toLocaleString()}`
-  }
+  // We now use the formatPrice function from utils.ts
 
   // Generate a consistent rating based on property id
   const rating = property.id ? (4.5 + (parseInt(property.id) % 5) * 0.1).toFixed(1) : "4.8"
@@ -60,19 +50,15 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 group">
       <div className="relative">
         <div className="relative w-full h-48">
-          <Image
+          <ResilientImage
             src={imageUrl}
             alt={property.title || "Property"}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             priority={featured}
-            onError={(e) => {
-              // If image fails to load, replace with placeholder
-              const imgElement = e.currentTarget as HTMLImageElement;
-              imgElement.onerror = null; // Prevent infinite loop
-              imgElement.src = "/placeholder.svg";
-            }}
+            fallbackSrc="/images/properties/property-placeholder.svg"
+            showLoadingEffect={true}
           />
         </div>
         {(property.isPremium || featured) && (

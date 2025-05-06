@@ -1,7 +1,7 @@
 "use client"
 
-import Image from "next/image"
 import { useLanguage } from "@/components/language-switcher"
+import { ResilientImage } from "@/components/resilient-image"
 
 interface PageHeaderProps {
   title: string
@@ -63,7 +63,7 @@ export function PageHeader({
   return (
     <div className={`relative w-full ${heightClass} overflow-hidden`}>
       {/* Background Image */}
-      <Image
+      <ResilientImage
         src={headerImage}
         alt={imageAlt || title}
         fill
@@ -71,6 +71,8 @@ export function PageHeader({
         priority
         quality={90}
         sizes="100vw"
+        fallbackSrc="/images/headers/fallback-header.svg"
+        showLoadingEffect={true}
       />
 
       {/* Overlay */}

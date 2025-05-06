@@ -42,7 +42,10 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 3600, // Increase cache time to 1 hour
+    dangerouslyAllowSVG: true, // Allow SVG images for our fallbacks
+    contentDispositionType: 'attachment', // Improve security
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;", // Secure SVG rendering
   },
   // Fix for CSS loading issues and optimize for production
   compiler: {
@@ -50,11 +53,16 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   // SWC minification is enabled by default in Next.js 15
-  // Add rewrites for WordPress API and admin
+  // Add rewrites for WordPress API, admin, and image handling
   async rewrites() {
     // Use the WordPress hosting IP directly to avoid circular references
     const wpHostingIP = '199.188.200.71';
     return [
+      // Custom image handling for external images
+      {
+        source: '/image-proxy',
+        destination: '/api/image',
+      },
       // WordPress API
       {
         source: '/wp-json/:path*',
@@ -89,6 +97,18 @@ const nextConfig = {
       {
         source: '/uploads/:path*',
         destination: `http://${wpHostingIP}/uploads/:path*`,
+      },
+      // Fallback for missing images to our custom handler
+      {
+        source: '/_next/image',
+        has: [
+          {
+            type: 'query',
+            key: 'url',
+            value: '(.*)',
+          },
+        ],
+        destination: '/api/image?url=:url*',
       },
     ];
   },
