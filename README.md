@@ -1,5 +1,7 @@
 # An Jia You Xuan - Real Estate Website
 
+[![Deploy to Vercel](https://github.com/Humpyt/An-Jia-website/actions/workflows/deploy-to-vercel.yml/badge.svg)](https://github.com/Humpyt/An-Jia-website/actions/workflows/deploy-to-vercel.yml)
+
 A premium real estate website for showcasing properties in Kampala, Uganda.
 
 ## Current Application Architecture
