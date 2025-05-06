@@ -51,8 +51,8 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
 
   // Helper function to fetch from API with multiple fallbacks
   const fetchFromApi = async (queryParams: URLSearchParams, cacheBuster: string) => {
-    // Try the main API endpoint first
-    const apiUrl = `/api/properties?${queryParams.toString()}&${cacheBuster}`;
+    // Use our new robust API endpoint that matches the home page approach
+    const apiUrl = `/api/properties-data?${queryParams.toString()}&${cacheBuster}`;
     console.log(`API URL: ${apiUrl}`);
 
     try {
@@ -60,7 +60,7 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      console.log('Sending request to primary API endpoint...');
+      console.log('Sending request to properties-data API endpoint...');
       const startTime = Date.now();
 
       const apiResponse = await fetch(apiUrl, {
@@ -75,38 +75,38 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
 
       clearTimeout(timeoutId);
       const responseTime = Date.now() - startTime;
-      console.log(`Primary API responded in ${responseTime}ms with status ${apiResponse.status}`);
+      console.log(`API responded in ${responseTime}ms with status ${apiResponse.status}`);
 
       if (!apiResponse.ok) {
         throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
       }
 
       const data = await apiResponse.json();
-      console.log(`Successfully fetched from primary API: ${data.properties?.length || 0} properties`);
+      console.log(`Successfully fetched from API: ${data.properties?.length || 0} properties`);
 
       // Validate data structure
       if (!data.properties || !Array.isArray(data.properties)) {
-        console.warn('Primary API returned invalid data structure:', data);
-        throw new Error('Invalid data structure from primary API');
+        console.warn('API returned invalid data structure:', data);
+        throw new Error('Invalid data structure from API');
       }
 
       return data;
     } catch (error) {
-      console.error('Error fetching from primary API, trying direct API:', error);
+      console.error('Error fetching from properties-data API, trying fallback:', error);
 
       try {
-        // Try the direct API endpoint as a fallback
-        const directApiUrl = `/api/properties/direct?${queryParams.toString()}&${cacheBuster}`;
-        console.log(`Trying direct API URL: ${directApiUrl}`);
+        // Try the original API endpoint as a fallback
+        const fallbackApiUrl = `/api/properties?${queryParams.toString()}&${cacheBuster}`;
+        console.log(`Trying fallback API URL: ${fallbackApiUrl}`);
 
-        const directController = new AbortController();
-        const directTimeoutId = setTimeout(() => directController.abort(), 10000);
+        const fallbackController = new AbortController();
+        const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 10000);
 
-        console.log('Sending request to direct API endpoint...');
-        const directStartTime = Date.now();
+        console.log('Sending request to fallback API endpoint...');
+        const fallbackStartTime = Date.now();
 
-        const directResponse = await fetch(directApiUrl, {
-          signal: directController.signal,
+        const fallbackResponse = await fetch(fallbackApiUrl, {
+          signal: fallbackController.signal,
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -115,26 +115,26 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
           cache: 'no-store',
         });
 
-        clearTimeout(directTimeoutId);
-        const directResponseTime = Date.now() - directStartTime;
-        console.log(`Direct API responded in ${directResponseTime}ms with status ${directResponse.status}`);
+        clearTimeout(fallbackTimeoutId);
+        const fallbackResponseTime = Date.now() - fallbackStartTime;
+        console.log(`Fallback API responded in ${fallbackResponseTime}ms with status ${fallbackResponse.status}`);
 
-        if (!directResponse.ok) {
-          throw new Error(`Direct API returned ${directResponse.status}: ${directResponse.statusText}`);
+        if (!fallbackResponse.ok) {
+          throw new Error(`Fallback API returned ${fallbackResponse.status}: ${fallbackResponse.statusText}`);
         }
 
-        const directData = await directResponse.json();
-        console.log(`Successfully fetched from direct API: ${directData.properties?.length || 0} properties`);
+        const fallbackData = await fallbackResponse.json();
+        console.log(`Successfully fetched from fallback API: ${fallbackData.properties?.length || 0} properties`);
 
         // Validate data structure
-        if (!directData.properties || !Array.isArray(directData.properties)) {
-          console.warn('Direct API returned invalid data structure:', directData);
-          throw new Error('Invalid data structure from direct API');
+        if (!fallbackData.properties || !Array.isArray(fallbackData.properties)) {
+          console.warn('Fallback API returned invalid data structure:', fallbackData);
+          throw new Error('Invalid data structure from fallback API');
         }
 
-        return directData;
-      } catch (directError) {
-        console.error('Error fetching from direct API, using property-data.js fallback:', directError);
+        return fallbackData;
+      } catch (fallbackError) {
+        console.error('Error fetching from fallback API, using direct import:', fallbackError);
 
         try {
           // Try to import property data directly as a last resort
@@ -214,7 +214,7 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
               price: "350000",
               currency: "USD",
               amenities: ['WiFi', 'Parking', 'Security'],
-              images: ["/images/properties/property-placeholder.svg"],
+              images: ["/images/properties/fallback-1.svg"],
               propertyType: "apartment"
             },
             {
@@ -226,7 +226,7 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
               price: "750000",
               currency: "USD",
               amenities: ['WiFi', 'Parking', 'Pool'],
-              images: ["/images/properties/property-placeholder.svg"],
+              images: ["/images/properties/fallback-2.svg"],
               propertyType: "house"
             }
           ],
