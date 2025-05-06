@@ -75,8 +75,11 @@ export function ImprovedProperties({ initialData }: ImprovedPropertiesProps) {
       // Add cache-busting parameter to avoid stale data
       const cacheBuster = `cacheBust=${Date.now()}`;
 
-      // Use the properties-data API endpoint
-      const apiUrl = `/api/properties-data?${queryParams.toString()}&${cacheBuster}`;
+      // Try the WordPress-specific endpoint first, then fall back to properties-data
+      // This gives us two chances to get real data from WordPress
+      const apiUrl = `/api/properties-wp?${queryParams.toString()}&${cacheBuster}`;
+
+      // If that fails, we'll try the regular properties-data endpoint as fallback
 
       // Fetch with timeout to avoid hanging requests
       const controller = new AbortController();
@@ -133,12 +136,75 @@ export function ImprovedProperties({ initialData }: ImprovedPropertiesProps) {
     } catch (err: any) {
       console.error(`Error fetching properties (attempt ${retryCount + 1}):`, err);
 
-      // Retry logic - try up to 2 more times with exponential backoff
-      if (retryCount < 2) {
-        console.log(`Retrying fetch (attempt ${retryCount + 2})...`);
+      // If this is the first attempt with the WordPress endpoint, try the properties-data endpoint
+      if (retryCount === 0) {
+        console.log('First endpoint failed, trying properties-data endpoint...');
+
+        try {
+          // Try the regular properties-data endpoint as fallback
+          const fallbackApiUrl = `/api/properties-data?${queryParams.toString()}&${cacheBuster}`;
+
+          console.log(`Trying fallback endpoint: ${fallbackApiUrl}`);
+
+          const fallbackController = new AbortController();
+          const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 10000);
+
+          const fallbackResponse = await fetch(fallbackApiUrl, {
+            signal: fallbackController.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            cache: 'no-store',
+          });
+
+          clearTimeout(fallbackTimeoutId);
+
+          if (!fallbackResponse.ok) {
+            throw new Error(`Fallback API returned ${fallbackResponse.status}: ${fallbackResponse.statusText}`);
+          }
+
+          const fallbackData = await fallbackResponse.json();
+
+          if (!fallbackData.properties || !Array.isArray(fallbackData.properties)) {
+            throw new Error('Invalid data structure from fallback API');
+          }
+
+          // Process the data as before
+          const validatedProperties = fallbackData.properties.map((prop: any) => ({
+            ...prop,
+            id: prop.id || `temp-${Math.random().toString(36).substring(2, 9)}`,
+            title: prop.title || 'Property Listing',
+            location: prop.location || 'Location not specified',
+            bedrooms: prop.bedrooms || '0',
+            bathrooms: prop.bathrooms || '0',
+            price: prop.price || '0',
+            currency: prop.currency || 'CNY',
+            amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
+            images: Array.isArray(prop.images) && prop.images.length > 0
+              ? prop.images
+              : ['/images/properties/property-placeholder.jpg']
+          }));
+
+          setProperties(validatedProperties);
+          setTotalCount(fallbackData.totalCount || validatedProperties.length);
+          setTotalPages(fallbackData.totalPages || Math.ceil(validatedProperties.length / 12));
+          setCurrentPage(page);
+
+          console.log(`Successfully loaded ${validatedProperties.length} properties from fallback endpoint`);
+          setLoading(false);
+          return;
+        } catch (fallbackError) {
+          console.error('Fallback endpoint also failed:', fallbackError);
+        }
+      }
+
+      // If fallback endpoint also failed or this is a retry, try again with the original endpoint
+      if (retryCount < 1) {
+        console.log(`Retrying original endpoint (attempt ${retryCount + 2})...`);
         setTimeout(() => {
           fetchProperties(page, retryCount + 1);
-        }, 1000 * Math.pow(2, retryCount)); // 1s, 2s, 4s backoff
+        }, 1000 * Math.pow(2, retryCount)); // 1s, 2s backoff
         return;
       }
 
