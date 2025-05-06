@@ -280,11 +280,19 @@ export function ClientPropertyDetails({
           <div className="bg-rose-50 border border-rose-100 rounded-lg px-6 py-4 text-center">
             <p className="text-sm text-gray-500 mb-1">Price</p>
             <div className="text-3xl font-bold text-rose-600">
-              {property.currency} {formattedPrice}
+              {property.price === '0' || !property.price
+                ? 'Contact for price'
+                : `${property.currency} ${formattedPrice}`
+              }
             </div>
             {property.paymentTerms && (
               <p className="text-sm text-gray-500 mt-1">
                 {property.paymentTerms}
+              </p>
+            )}
+            {property._debug && (
+              <p className="text-xs text-gray-400 mt-2 italic">
+                Source: {property._debug.priceSource}
               </p>
             )}
           </div>
