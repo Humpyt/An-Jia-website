@@ -55,21 +55,8 @@ export function FeaturedProperties() {
         const response = await fetch('/api/featured-properties')
         if (!response.ok) throw new Error('Failed to fetch')
         const data = await response.json()
-
-        // Mark all featured properties as premium and ensure they have all required fields
-        const propertiesWithPremium = data.map(property => ({
-          ...property,
-          isPremium: true,
-          // Ensure all required fields are present
-          location: property.location || 'Kampala, Uganda',
-          bedrooms: property.bedrooms || '2',
-          bathrooms: property.bathrooms || '1',
-          price: property.price || '1500',
-          currency: property.currency || 'USD',
-          amenities: property.amenities || ['WiFi', 'Parking', 'Security']
-        }))
-
-        setProperties(propertiesWithPremium)
+        // Take first 4 properties
+        setProperties(data.slice(0, 4))
       } catch (err) {
         console.error('Error fetching featured properties:', err)
         setError(err instanceof Error ? err.message : 'Failed to load properties')
@@ -83,7 +70,7 @@ export function FeaturedProperties() {
 
   if (loading) {
     return (
-      <section className="py-20 bg-neutral-50">
+      <section className="py-16 bg-gray-50">
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-2">Featured Properties</h2>
@@ -105,7 +92,7 @@ export function FeaturedProperties() {
 
   if (error) {
     return (
-      <section className="py-20 bg-neutral-50">
+      <section className="py-16 bg-gray-50">
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-2">Featured Properties</h2>
@@ -119,7 +106,7 @@ export function FeaturedProperties() {
 
   if (properties.length === 0) {
     return (
-      <section className="py-20 bg-neutral-50">
+      <section className="py-16 bg-gray-50">
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-2">Featured Properties</h2>
@@ -132,39 +119,29 @@ export function FeaturedProperties() {
   }
 
   return (
-    <section className="py-16">
+    <section className="py-16 bg-white">
       <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tight mb-2">Featured Properties</h2>
-          <p className="text-neutral-500">Discover our selection of premium properties in Kampala</p>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold tracking-tight">{translate("featured_properties")}</h2>
+          <p className="text-neutral-600 mt-2">Discover our selection of premium properties in Kampala</p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {properties.map((property) => (
-            <PropertyCard
-              key={property.id}
-              property={{
-                ...property,
-                images: property.featured_image ? [property.featured_image] : [],
-                currency: property.currency || 'USD',
-                bathrooms: property.bathrooms || '1',
-                squareMeters: property.square_footage
-              }}
-              featured={true}
-            />
+          {properties.map(property => (
+            <PropertyCard key={property.id} property={property} featured />
           ))}
         </div>
         <div className="mt-8 text-center">
           <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-            <Link href="/properties">
-              View All Properties
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <Link href="/properties" className="flex items-center">
+              {translate("view_all_properties")} 
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
                 className="ml-2 h-4 w-4"
               >
                 <path d="M5 12h14" />

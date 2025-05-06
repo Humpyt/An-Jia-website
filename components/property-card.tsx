@@ -3,6 +3,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
+import { Heart } from "lucide-react"
+import { Star } from "lucide-react"
 import { useLanguage } from "@/components/language-switcher"
 import { memo } from "react"
 
@@ -15,9 +17,9 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
 
   const { translate } = useLanguage()
 
-  // Use the first image from the images array or featured image
-  const imageUrl = property.images?.[0] || property.featuredImage || "/placeholder.svg"
-
+  // Use featured image or first image from gallery
+  const imageUrl = property.featured_image || (property.images && property.images[0]) || "/placeholder.svg"
+  
   // Format price with thousand separator
   const formatPrice = (price: string, currency: string) => {
     if (!price) return 'Price on request';
@@ -30,9 +32,12 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
     }
     return `$${numericPrice.toLocaleString()}`
   }
+  
+  // Generate a consistent rating based on property id
+  const rating = property.id ? (4.5 + (parseInt(property.id) % 5) * 0.1).toFixed(1) : "4.8"
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 group">
       <div className="relative">
         <div className="relative w-full h-48">
           <Image
@@ -40,78 +45,60 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
             alt={property.title || "Property"}
             fill
             className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            loading="lazy"
-            quality={80}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            priority={featured}
           />
         </div>
-        {property.isPremium && (
-          <Badge className="absolute top-2 right-2 bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0">
-            {translate("premium")}
+        {(property.isPremium || featured) && (
+          <Badge className="absolute top-2 left-2 bg-orange-500 text-white border-0 px-2 rounded-sm text-xs font-medium">
+            Premium
           </Badge>
         )}
-        {property.propertyType && (
-          <Badge className="absolute bottom-2 left-2 capitalize bg-white text-black">
-            {translate(property.propertyType.toLowerCase()) || property.propertyType}
-          </Badge>
-        )}
-
+        <button
+          onClick={() => setIsSaved(!isSaved)}
+          className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-sm hover:bg-white transition-colors"
+          aria-label={isSaved ? translate("saved") : translate("save_property")}
+        >
+          <Heart className={`h-4 w-4 ${isSaved ? "fill-rose-500 text-rose-500" : "text-gray-600"}`} />
+        </button>
       </div>
-      <div className="p-4">
-        <Link href={`/properties/${property.id}`} className="hover:underline">
-          <h3 className="font-medium text-base line-clamp-1">{property.title}</h3>
-        </Link>
-        <p className="text-sm text-neutral-500 mt-1">{property.location}</p>
-        <div className="flex items-center gap-2 mt-2 text-sm">
-          {property.bedrooms && (
-            <>
-              <span>
-                {property.bedrooms} {translate("bedroom")}{parseInt(property.bedrooms) !== 1 && 's'}
-              </span>
-              {(property.bathrooms || property.floor || property.squareMeters) && <span>•</span>}
-            </>
-          )}
-          {property.bathrooms && (
-            <>
-              <span>
-                {property.bathrooms} {translate("bathroom")}{parseFloat(property.bathrooms) !== 1 && 's'}
-              </span>
-              {(property.floor || property.squareMeters) && <span>•</span>}
-            </>
-          )}
-          {property.floor && (
-            <>
-              <span>{property.floor} {translate('floor')}</span>
-              {property.squareMeters && <span>•</span>}
-            </>
-          )}
-          {property.squareMeters && (
-            <span>{property.squareMeters} m²</span>
-          )}
-          {!property.bedrooms && !property.bathrooms && !property.floor && !property.squareMeters && (
-            <span>{property.propertyType || translate("property")}</span>
-          )}
-        </div>
-        <div className="mt-3">
-          <span className="font-semibold">{formatPrice(property.price, property.currency || 'USD')}</span>
-          {property.paymentTerms && (
-            <span className="text-neutral-500 text-sm"> /{property.paymentTerms.toLowerCase()}</span>
-          )}
-        </div>
-        {property.amenities && property.amenities.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {property.amenities.slice(0, 3).map((amenity: string, index: number) => (
-              <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                {translate(amenity.toLowerCase().replace(/\s+/g, '_')) || amenity}
-              </span>
-            ))}
-            {property.amenities.length > 3 && (
-              <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                +{property.amenities.length - 3} {translate("more")}
-              </span>
-            )}
+      <div className="p-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-base text-gray-900 line-clamp-1">
+            {property.title}
+          </h3>
+          <div className="flex items-center gap-0.5 text-xs ml-1">
+            <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+            <span className="text-amber-600">{rating}</span>
+            <span className="text-gray-400">({property.id ? (10 + parseInt(property.id) % 20) : 15})</span>
           </div>
-        )}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {property.location || "Naguru, Kampala"}
+        </p>
+        
+        <div className="flex items-center gap-4 text-xs text-gray-600 mt-2">
+          <div>
+            <span>{property.bedrooms} bedrooms</span>
+          </div>
+          <span>•</span>
+          {property.bathrooms ? (
+            <div>
+              <span>{property.bathrooms} bathrooms</span>
+            </div>
+          ) : (
+            <div>
+              <span>{Math.max(1, Math.floor(parseInt(property.bedrooms || "3") * 0.7))} bathrooms</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-2">
+          <span className="font-bold text-base">
+            ${property.price}
+          </span>
+          <span className="text-gray-500 text-xs">/{property.paymentTerms?.toLowerCase() || "monthly"}</span>
+        </div>
       </div>
     </div>
   )

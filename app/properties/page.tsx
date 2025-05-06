@@ -15,24 +15,8 @@ export default async function PropertiesPage(props: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const { searchParams } = props
-
-  // Wait for searchParams to be ready
-  const searchParamsReady = await Promise.resolve(searchParams)
-
-  // Sanitize searchParams to only include the values we need
-  const params = {
-    page: searchParamsReady?.page?.toString(),
-    location: searchParamsReady?.location?.toString(),
-    minPrice: searchParamsReady?.minPrice?.toString(),
-    maxPrice: searchParamsReady?.maxPrice?.toString(),
-    bedrooms: searchParamsReady?.bedrooms?.toString(),
-    bathrooms: searchParamsReady?.bathrooms?.toString(),
-    propertyType: searchParamsReady?.propertyType?.toString(),
-    moveInDate: searchParamsReady?.moveInDate?.toString(),
-    occupants: searchParamsReady?.occupants?.toString(),
-    amenities: searchParamsReady?.amenities
-  }
-
+  const params = Object.fromEntries(Object.entries(searchParams))
+  
   // Parse filters
   const page = params?.page ? Number.parseInt(params.page) : 1
   const limit = 12
