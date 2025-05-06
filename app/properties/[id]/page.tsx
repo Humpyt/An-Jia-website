@@ -33,21 +33,39 @@ export default async function PropertyPage(props: Props) {
   // Use the id from props directly in async operations
   const id = props.params.id;
 
-  // Create a minimal property object for initial rendering
-  // The client component will handle the actual data fetching
-  const property: Property = {
-    id,
-    title: "Loading Property...",
-    description: "Loading property details...",
-    location: "Loading...",
-    bedrooms: "0",
-    bathrooms: "0",
-    price: "0",
-    currency: "USD",
-    amenities: [],
-    images: ["/images/headers/property-detail.jpg"],
-    propertyType: "property"
-  };
+  // Try to fetch initial property data from the server
+  let property: Property;
+
+  try {
+    // First try to get property data from the server action
+    console.log(`Server: Attempting to fetch property ${id} from server action`);
+    const serverProperty = await getPropertyById(id);
+
+    if (serverProperty) {
+      console.log(`Server: Successfully fetched property ${id} from server action`);
+      property = serverProperty;
+    } else {
+      throw new Error('Property not found');
+    }
+  } catch (error) {
+    console.error(`Server: Error fetching property ${id}:`, error);
+
+    // Create a minimal property object for initial rendering
+    // The client component will handle the actual data fetching
+    property = {
+      id,
+      title: "Loading Property...",
+      description: "Loading property details...",
+      location: "Loading...",
+      bedrooms: "0",
+      bathrooms: "0",
+      price: "0",
+      currency: "USD",
+      amenities: [],
+      images: ["/images/headers/property-detail.jpg"],
+      propertyType: "property"
+    };
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -220,7 +220,14 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
 
   // Fetch property details on initial load
   useEffect(() => {
+    console.log('ClientPropertyDetails useEffect triggered with id:', id);
+    console.log('Initial property state:', initialProperty);
     fetchPropertyDetails();
+
+    // Log the current state after the fetch attempt
+    return () => {
+      console.log('Component unmounting or id changed. Current property state:', property);
+    };
   }, [id]);
 
   if (loading) {
