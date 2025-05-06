@@ -27,16 +27,11 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
 
     // Then try to use the first image from the gallery
     if (property.images && property.images.length > 0) {
-      // If the image is from an external source like Unsplash, use a local fallback
-      const firstImage = property.images[0];
-      if (firstImage.includes('unsplash.com')) {
-        return `/images/properties/property-${property.id || '1'}.jpg`;
-      }
-      return firstImage;
+      return property.images[0];
     }
 
-    // Default fallback
-    return "/placeholder.svg";
+    // Default fallback based on property ID
+    return `/images/properties/property-${property.id || '1'}.jpg`;
   };
 
   const imageUrl = getImageUrl();

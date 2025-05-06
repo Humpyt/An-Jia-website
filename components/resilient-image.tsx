@@ -9,7 +9,7 @@ const FALLBACK_IMAGES = [
   '/images/properties/fallback-1.jpg',
   '/images/properties/fallback-2.jpg',
   '/images/properties/fallback-3.jpg',
-  '/images/properties/property-placeholder.svg',
+  '/images/properties/property-placeholder.jpg',
 ];
 
 // Get a random fallback image
@@ -33,7 +33,7 @@ export function ResilientImage({
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
-  
+
   // Process the source URL to ensure it's valid
   useEffect(() => {
     // If src is a remote URL (starts with http), use it directly
@@ -41,7 +41,7 @@ export function ResilientImage({
       setImgSrc(src);
       return;
     }
-    
+
     // For other sources, ensure they're properly formatted
     if (typeof src === 'string') {
       // If it's a relative path without leading slash, add it
@@ -49,7 +49,7 @@ export function ResilientImage({
         setImgSrc(`/${src}`);
         return;
       }
-      
+
       setImgSrc(src);
     } else {
       // For StaticImageData or other objects
@@ -67,10 +67,10 @@ export function ResilientImage({
   const handleError = () => {
     setError(true);
     setIsLoading(false);
-    
+
     // Use provided fallback or get a random one
     const newSrc = fallbackSrc || getRandomFallback();
-    
+
     // Only change the source if it's different to avoid infinite loops
     if (imgSrc !== newSrc) {
       console.log(`Image failed to load: ${imgSrc}, using fallback: ${newSrc}`);
