@@ -49,34 +49,106 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
   const [loading, setLoading] = useState(!initialProperty);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to fetch property details
+  // Function to fetch property details with enhanced error handling and fallbacks
   const fetchPropertyDetails = async () => {
-    if (initialProperty) {
-      return; // Skip fetching if we already have initial data
+    if (initialProperty && initialProperty.title !== "Loading Property...") {
+      console.log('Using initial property data:', initialProperty.title);
+      return; // Skip fetching if we already have complete initial data
     }
 
     setLoading(true);
     setError(null);
 
     try {
-      // Skip static JSON and go straight to API
+      console.log(`Fetching property details for ID: ${id}`);
 
-      // If static JSON fails, try the API
-      const apiResponse = await fetch(`/api/properties/${id}`);
+      // Add cache buster to avoid stale data
+      const cacheBuster = `cacheBust=${Date.now()}`;
+
+      // Fetch with timeout to avoid hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const apiResponse = await fetch(`/api/properties/${id}?${cacheBuster}`, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        // Disable cache to ensure fresh data
+        cache: 'no-store',
+      });
+
+      clearTimeout(timeoutId);
 
       if (!apiResponse.ok) {
         throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
       }
 
       const data = await apiResponse.json();
-      setProperty(data.property);
 
-      console.log(`Loaded property ${id} from API`);
+      if (!data.property) {
+        throw new Error('Invalid API response: missing property data');
+      }
+
+      // Validate and enhance the property data
+      const validatedProperty = {
+        ...data.property,
+        // Ensure these fields exist with fallbacks
+        id: data.property.id || id,
+        title: data.property.title || 'Property Details',
+        description: data.property.description || '<p>No description available</p>',
+        location: data.property.location || 'Location not specified',
+        bedrooms: data.property.bedrooms || '0',
+        bathrooms: data.property.bathrooms || '0',
+        price: data.property.price || 'Contact for price',
+        currency: data.property.currency || 'USD',
+        amenities: Array.isArray(data.property.amenities) ? data.property.amenities : [],
+        images: Array.isArray(data.property.images) && data.property.images.length > 0
+          ? data.property.images
+          : ['/images/properties/property-placeholder.svg'],
+        propertyType: data.property.propertyType || 'property'
+      };
+
+      setProperty(validatedProperty);
+      console.log(`Successfully loaded property ${id} from API:`, validatedProperty.title);
     } catch (err: any) {
       console.error('Error fetching property details:', err);
-      setError(err.message || 'Failed to fetch property details');
 
-      // If all else fails, use demo data
+      // Try to import property data directly as a fallback
+      try {
+        console.log('Attempting to import property data directly...');
+        const { getPropertyById } = await import('@/lib/property-service');
+        const fallbackProperty = await getPropertyById(id, true);
+
+        if (fallbackProperty) {
+          console.log('Successfully loaded property from direct import');
+          setProperty(fallbackProperty);
+          return;
+        }
+      } catch (importError) {
+        console.error('Error importing property data directly:', importError);
+      }
+
+      // If direct import fails, try to use property-fallback.js
+      try {
+        console.log('Attempting to use property-fallback.js...');
+        const { getFallbackProperty } = await import('@/lib/property-fallback');
+        const fallbackProperty = getFallbackProperty(id);
+
+        if (fallbackProperty) {
+          console.log('Successfully loaded property from fallback system');
+          setProperty(fallbackProperty);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('Error using property-fallback.js:', fallbackError);
+      }
+
+      // If all else fails, use minimal fallback data
+      console.log('All fallback methods failed, using minimal property data');
+      setError('Could not load complete property details. Showing limited information.');
+
       setProperty({
         id,
         title: "Property Information",
@@ -88,7 +160,7 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
         currency: "USD",
         amenities: ["WiFi", "Parking", "Security"],
         images: [
-          "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800"
+          "/images/properties/property-placeholder.svg"
         ],
         propertyType: "property",
         agents: {

@@ -7,16 +7,16 @@ import { AuthButtons } from "@/components/auth-buttons"
 import { PageHeader } from "@/components/page-header"
 import { Suspense } from "react"
 import { Spinner } from "@/components/spinner"
-import { ClientProperties } from "@/components/client-properties"
-// Import the WordPress properties action as fallback
-import { getPropertiesWithFilters } from "@/app/actions/wordpress-properties"
+import { ImprovedProperties } from "@/components/improved-properties"
+// Import the initial data provider
+import { getInitialPropertiesData } from "./page-data"
 
 export default async function PropertiesPage(props: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const { searchParams } = props
   const params = Object.fromEntries(Object.entries(searchParams))
-  
+
   // Parse filters
   const page = params?.page ? Number.parseInt(params.page) : 1
   const limit = 12
@@ -36,77 +36,10 @@ export default async function PropertiesPage(props: {
       : undefined
   }
 
-  // Fetch initial data from fallback properties
-  let properties = [];
-  let totalCount = 0;
-  let totalPages = 0;
-  let error = null;
+  // Get initial data for server-side rendering
+  const initialData = await getInitialPropertiesData();
 
-  try {
-    // Import fallback properties directly
-    const { FALLBACK_PROPERTIES } = await import('@/lib/property-fallback');
-
-    // Use fallback properties
-    let filteredProperties = [...FALLBACK_PROPERTIES];
-
-    // Apply filters
-    if (filters.location) {
-      filteredProperties = filteredProperties.filter(p =>
-        p.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-
-    if (filters.minPrice) {
-      filteredProperties = filteredProperties.filter(p =>
-        parseInt(p.price) >= filters.minPrice
-      );
-    }
-
-    if (filters.maxPrice) {
-      filteredProperties = filteredProperties.filter(p =>
-        parseInt(p.price) <= filters.maxPrice
-      );
-    }
-
-    if (filters.bedrooms) {
-      filteredProperties = filteredProperties.filter(p =>
-        parseInt(p.bedrooms) === filters.bedrooms
-      );
-    }
-
-    if (filters.bathrooms) {
-      filteredProperties = filteredProperties.filter(p =>
-        parseInt(p.bathrooms) === filters.bathrooms
-      );
-    }
-
-    if (filters.propertyType) {
-      filteredProperties = filteredProperties.filter(p =>
-        p.propertyType === filters.propertyType
-      );
-    }
-
-    // Calculate total count and pages
-    totalCount = filteredProperties.length;
-    totalPages = Math.ceil(totalCount / limit);
-
-    // Apply pagination
-    properties = filteredProperties.slice(offset, offset + limit);
-
-    console.log(`Server: Providing ${properties.length} initial properties out of ${totalCount} total`);
-  } catch (err) {
-    console.error('Error fetching initial properties:', err);
-    error = 'Failed to fetch initial properties';
-  }
-
-  // Format data to match what ClientProperties expects
-  const propertiesData = {
-    data: properties || [],
-    totalCount,
-    totalPages,
-    currentPage: page,
-    error
-  };
+  console.log(`Server: Providing ${initialData.properties.length} initial properties out of ${initialData.totalCount} total`);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -126,6 +59,7 @@ export default async function PropertiesPage(props: {
       <PageHeader
         title="Properties"
         description="Find your perfect property in our extensive listings"
+        imagePath="/images/headers/contact-header.jpg"
         height="medium"
       />
 
@@ -134,13 +68,7 @@ export default async function PropertiesPage(props: {
           <Spinner size="lg" />
         </div>
       }>
-        <ClientProperties initialData={{
-          properties: properties || [],
-          totalCount,
-          totalPages,
-          currentPage: page,
-          error
-        }} />
+        <ImprovedProperties initialData={initialData} />
       </Suspense>
 
       <Footer />

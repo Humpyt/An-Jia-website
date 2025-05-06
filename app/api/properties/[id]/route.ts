@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GET as createGetHandler, DELETE as createDeleteHandler } from '@/lib/api-utils';
+import { getPropertyById } from '@/lib/property-service';
 
 // Using our custom route handler wrapper for correct typing
 export const GET = createGetHandler(
@@ -17,13 +18,10 @@ export const GET = createGetHandler(
 
       console.log(`API: Fetching property with ID: ${id}`);
 
-      // Import fallback property function directly
-      const { getFallbackProperty } = await import('@/lib/property-fallback');
+      // Use our centralized property service to get property details with fallbacks
+      const property = await getPropertyById(id, request.url.includes('skipCache=true'));
 
-      // Get fallback property by ID
-      const property = getFallbackProperty(id);
-
-      console.log(`API: Using fallback property for ID: ${id}`);
+      console.log(`API: Successfully retrieved property for ID: ${id}`);
 
       // Return the response
       return NextResponse.json({ property });
@@ -43,7 +41,7 @@ export const GET = createGetHandler(
           bathrooms: "0",
           amenities: ["WiFi", "Parking", "Security", "Swimming Pool", "Gym"],
           images: [
-            "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800"
+            "/images/properties/property-placeholder.svg"
           ],
           propertyType: "property",
           agents: {

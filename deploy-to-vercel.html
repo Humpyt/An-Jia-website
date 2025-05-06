@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Jia Website - Vercel Deployment</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0070f3;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0070f3;
+            margin-top: 30px;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #0070f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #005cc5;
+        }
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #0070f3;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>An Jia Website - Vercel Deployment</h1>
+    
+    <p>This page provides a simple way to deploy the An Jia website to Vercel, with a focus on fixing the properties page data fetching issue.</p>
+    
+    <div class="step">
+        <h2><span class="step-number">1</span>Login to Vercel</h2>
+        <p>First, make sure you're logged in to your Vercel account:</p>
+        <a href="https://vercel.com/login" target="_blank" class="button">Login to Vercel</a>
+    </div>
+    
+    <div class="step">
+        <h2><span class="step-number">2</span>Go to Your Project</h2>
+        <p>Navigate to your An Jia project on Vercel:</p>
+        <a href="https://vercel.com/dashboard" target="_blank" class="button">Go to Dashboard</a>
+    </div>
+    
+    <div class="step">
+        <h2><span class="step-number">3</span>Create a New Deployment</h2>
+        <p>Click on "Deployments" in the sidebar, then click the "Deploy" button.</p>
+    </div>
+    
+    <div class="step">
+        <h2><span class="step-number">4</span>Update Environment Variables</h2>
+        <p>Make sure the following environment variables are set in your Vercel project:</p>
+        <pre><code>NEXT_PUBLIC_WORDPRESS_API_URL=http://wp.ajyxn.com/wp-json
+WORDPRESS_API_URL=http://wp.ajyxn.com/wp-json
+WORDPRESS_FALLBACK_API_URL=http://199.188.200.71/wp-json
+WORDPRESS_DIRECT_API_URL=http://wp.ajyxn.com/wp-json</code></pre>
+        <p>You can update these in your project settings under "Environment Variables".</p>
+    </div>
+    
+    <div class="step">
+        <h2><span class="step-number">5</span>Verify the Deployment</h2>
+        <p>After deployment, verify that the properties page is working correctly:</p>
+        <ol>
+            <li>Visit <a href="https://ajyxn.com/properties" target="_blank">https://ajyxn.com/properties</a></li>
+            <li>Check that property data is loading correctly</li>
+            <li>Open the browser console (F12) and look for any errors</li>
+            <li>Test the property filters and pagination</li>
+        </ol>
+    </div>
+    
+    <div class="step">
+        <h2><span class="step-number">6</span>Troubleshooting</h2>
+        <p>If issues persist after deployment:</p>
+        <ul>
+            <li>Check the Vercel deployment logs for any errors</li>
+            <li>Verify that the WordPress API is accessible at <a href="http://wp.ajyxn.com/wp-json" target="_blank">http://wp.ajyxn.com/wp-json</a></li>
+            <li>Check for CORS errors in the browser console</li>
+            <li>Ensure that the Content Security Policy in vercel.json is correctly configured</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Simple script to check if Vercel CLI is installed
+        function checkVercelCLI() {
+            try {
+                const result = window.require && window.require('child_process').execSync('vercel --version');
+                alert(`Vercel CLI is installed: ${result.toString()}`);
+            } catch (error) {
+                alert('Vercel CLI is not installed or cannot be detected in this environment.');
+            }
+        }
+    </script>
+</body>
+</html>

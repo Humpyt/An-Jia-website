@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GET as createGetHandler } from '@/lib/api-utils';
-import { properties as staticProperties } from '@/lib/property-data';
+import { getProperties } from '@/lib/property-service';
 
 // Using our custom route handler wrapper for correct typing
 export const GET = createGetHandler(
@@ -15,73 +15,32 @@ export const GET = createGetHandler(
       const bedrooms = searchParams.get('bedrooms');
       const bathrooms = searchParams.get('bathrooms');
       const propertyType = searchParams.get('propertyType');
-      
-      // WordPress API URL (using HTTP for direct server-side requests)
-      const wpApiUrl = process.env.WORDPRESS_DIRECT_API_URL || 'http://wp.ajyxn.com/wp-json';
-      
-      // Build the WordPress API URL with query parameters
-      let wpEndpoint = `${wpApiUrl}/anjia/v1/properties?page=${page}`;
-      
-      if (location) wpEndpoint += `&location=${encodeURIComponent(location)}`;
-      if (minPrice) wpEndpoint += `&min_price=${encodeURIComponent(minPrice)}`;
-      if (maxPrice) wpEndpoint += `&max_price=${encodeURIComponent(maxPrice)}`;
-      if (bedrooms && bedrooms !== 'any') wpEndpoint += `&bedrooms=${encodeURIComponent(bedrooms)}`;
-      if (bathrooms && bathrooms !== 'any') wpEndpoint += `&bathrooms=${encodeURIComponent(bathrooms)}`;
-      if (propertyType && propertyType !== 'any') wpEndpoint += `&property_type=${encodeURIComponent(propertyType)}`;
-      
-      console.log(`Fetching properties from: ${wpEndpoint}`);
 
-      // Forward the request to WordPress
-      const response = await fetch(wpEndpoint, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+      console.log(`API: Fetching properties page ${page} with filters:`,
+        { location, minPrice, maxPrice, bedrooms, bathrooms, propertyType });
+
+      // Use our centralized property service to get properties with fallbacks
+      const result = await getProperties({
+        page,
+        limit: 12,
+        filters: {
+          location,
+          minPrice: minPrice ? parseInt(minPrice) : undefined,
+          maxPrice: maxPrice ? parseInt(maxPrice) : undefined,
+          bedrooms,
+          bathrooms,
+          propertyType
         },
-        next: { revalidate: 300 } // Cache for 5 minutes
+        skipCache: searchParams.has('skipCache')
       });
 
-      if (!response.ok) {
-        console.error(`WordPress API error: ${response.status} ${response.statusText}`);
-
-        // Try fallback URL if primary fails
-        const fallbackUrl = process.env.WORDPRESS_FALLBACK_API_URL || 'http://199.188.200.71/wp-json';
-        const fallbackEndpoint = wpEndpoint.replace(wpApiUrl, fallbackUrl);
-        
-        console.log(`Trying fallback URL: ${fallbackEndpoint}`);
-
-        const fallbackResponse = await fetch(fallbackEndpoint, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          }
-        });
-
-        if (!fallbackResponse.ok) {
-          console.error(`Fallback API error: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
-          // If both API calls fail, use static data
-          return getStaticPropertiesResponse(searchParams);
-        }
-
-        const fallbackData = await fallbackResponse.json();
-        return NextResponse.json(fallbackData);
-      }
-
-      // Get the response data
-      const data = await response.json();
-      
-      // Validate the response data
-      if (!data || !Array.isArray(data.properties)) {
-        console.error('Invalid API response format:', data);
-        // Use static data if response format is invalid
-        return getStaticPropertiesResponse(searchParams);
-      }
+      console.log(`API: Returning ${result.properties.length} properties out of ${result.totalCount} total`);
 
       // Return the response
-      return NextResponse.json(data);
+      return NextResponse.json(result);
     } catch (error: any) {
-      console.error('Error in properties data proxy:', error);
+      console.error('Error in properties data API:', error);
+
       // Use static data in case of any error
       return getStaticPropertiesResponse(new URLSearchParams(request.url.split('?')[1]));
     }
@@ -99,43 +58,43 @@ function getStaticPropertiesResponse(searchParams: URLSearchParams) {
     const bedrooms = searchParams.get('bedrooms');
     const bathrooms = searchParams.get('bathrooms');
     const propertyType = searchParams.get('propertyType');
-    
+
     // Apply filters to static properties
     let filteredProperties = [...staticProperties];
-    
+
     if (location) {
-      filteredProperties = filteredProperties.filter(p => 
+      filteredProperties = filteredProperties.filter(p =>
         p.location.toLowerCase().includes(location.toLowerCase())
       );
     }
-    
+
     if (minPrice) {
       const min = parseInt(minPrice);
       filteredProperties = filteredProperties.filter(p => parseInt(p.price) >= min);
     }
-    
+
     if (maxPrice) {
       const max = parseInt(maxPrice);
       filteredProperties = filteredProperties.filter(p => parseInt(p.price) <= max);
     }
-    
+
     if (bedrooms && bedrooms !== 'any') {
       filteredProperties = filteredProperties.filter(p => p.bedrooms === bedrooms);
     }
-    
+
     if (bathrooms && bathrooms !== 'any') {
       filteredProperties = filteredProperties.filter(p => p.bathrooms === bathrooms);
     }
-    
+
     if (propertyType && propertyType !== 'any') {
       filteredProperties = filteredProperties.filter(p => p.propertyType === propertyType);
     }
-    
+
     // Apply pagination
     const limit = 12;
     const offset = (page - 1) * limit;
     const paginatedProperties = filteredProperties.slice(offset, offset + limit);
-    
+
     // Return formatted response
     return NextResponse.json({
       properties: paginatedProperties,
@@ -145,7 +104,7 @@ function getStaticPropertiesResponse(searchParams: URLSearchParams) {
     });
   } catch (error) {
     console.error('Error processing static properties:', error);
-    
+
     // Return minimal fallback data in case of error
     return NextResponse.json({
       properties: staticProperties.slice(0, 12),

@@ -51,11 +51,104 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
 
   // Helper function to fetch from API with multiple fallbacks
   const fetchFromApi = async (queryParams: URLSearchParams, cacheBuster: string) => {
-    // Use our new robust API endpoint that matches the home page approach
-    const apiUrl = `/api/properties-data?${queryParams.toString()}&${cacheBuster}`;
-    console.log(`API URL: ${apiUrl}`);
-
+    // First try our new CORS proxy with the WordPress API
     try {
+      // Encode the WordPress API URL for the CORS proxy
+      const wpApiUrl = 'http://wp.ajyxn.com/wp-json/anjia/v1/properties';
+      const corsProxyUrl = `/api/cors-proxy?url=${encodeURIComponent(wpApiUrl)}&${cacheBuster}`;
+      console.log(`Trying CORS proxy: ${corsProxyUrl}`);
+
+      // Fetch with timeout to avoid hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      console.log('Sending request to CORS proxy...');
+      const startTime = Date.now();
+
+      const corsResponse = await fetch(corsProxyUrl, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        // Disable cache to ensure fresh data
+        cache: 'no-store',
+      });
+
+      clearTimeout(timeoutId);
+      const responseTime = Date.now() - startTime;
+      console.log(`CORS proxy responded in ${responseTime}ms with status ${corsResponse.status}`);
+
+      if (!corsResponse.ok) {
+        throw new Error(`CORS proxy returned ${corsResponse.status}: ${corsResponse.statusText}`);
+      }
+
+      const corsData = await corsResponse.json();
+      console.log(`Successfully fetched from CORS proxy: ${corsData.properties?.length || 0} properties`);
+
+      // If we got valid data from the CORS proxy, format it for our component
+      if (corsData && Array.isArray(corsData.properties)) {
+        // Apply any filters that were in the query params
+        let filteredProperties = [...corsData.properties];
+
+        const location = queryParams.get('location');
+        if (location) {
+          filteredProperties = filteredProperties.filter(p =>
+            p.location.toLowerCase().includes(location.toLowerCase())
+          );
+        }
+
+        const minPrice = queryParams.get('minPrice');
+        if (minPrice) {
+          const min = parseInt(minPrice);
+          filteredProperties = filteredProperties.filter(p => parseInt(p.price) >= min);
+        }
+
+        const maxPrice = queryParams.get('maxPrice');
+        if (maxPrice) {
+          const max = parseInt(maxPrice);
+          filteredProperties = filteredProperties.filter(p => parseInt(p.price) <= max);
+        }
+
+        const bedrooms = queryParams.get('bedrooms');
+        if (bedrooms && bedrooms !== 'any') {
+          filteredProperties = filteredProperties.filter(p => p.bedrooms === bedrooms);
+        }
+
+        const bathrooms = queryParams.get('bathrooms');
+        if (bathrooms && bathrooms !== 'any') {
+          filteredProperties = filteredProperties.filter(p => p.bathrooms === bathrooms);
+        }
+
+        const propertyType = queryParams.get('propertyType');
+        if (propertyType && propertyType !== 'any') {
+          filteredProperties = filteredProperties.filter(p => p.propertyType === propertyType);
+        }
+
+        // Get page from query params
+        const page = parseInt(queryParams.get('page') || '1');
+        const limit = 12;
+        const offset = (page - 1) * limit;
+
+        // Apply pagination
+        const paginatedProperties = filteredProperties.slice(offset, offset + limit);
+
+        return {
+          properties: paginatedProperties,
+          totalCount: filteredProperties.length,
+          totalPages: Math.ceil(filteredProperties.length / limit),
+          currentPage: page
+        };
+      }
+
+      throw new Error('Invalid data structure from CORS proxy');
+    } catch (corsError) {
+      console.error('Error fetching from CORS proxy, trying regular API:', corsError);
+
+      // Fall back to our regular API endpoint
+      const apiUrl = `/api/properties-data?${queryParams.toString()}&${cacheBuster}`;
+      console.log(`Falling back to API URL: ${apiUrl}`);
+
       // Fetch with timeout to avoid hanging requests
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout

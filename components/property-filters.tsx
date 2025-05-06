@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
@@ -9,13 +10,47 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useLanguage } from "@/components/language-switcher"
+
+// Define locations for the dropdown
+const LOCATIONS = [
+  'Beijing',
+  'Shanghai',
+  'Guangzhou',
+  'Shenzhen',
+  'Chengdu',
+  'Hangzhou',
+  'Nanjing',
+  'Wuhan',
+  'Tianjin',
+  'Chongqing',
+  'Suzhou',
+  'Xiamen',
+  'Qingdao',
+  'Dalian',
+  'Ningbo'
+];
 
 export function PropertyFilters() {
-  const [priceRange, setPriceRange] = useState([0, 5000])
+  const { translate } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get initial filter values from URL
+  const [priceRange, setPriceRange] = useState([
+    searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : 0,
+    searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : 5000000
+  ])
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([])
-  const [bedrooms, setBedrooms] = useState<number | null>(null)
-  const [bathrooms, setBathrooms] = useState<number | null>(null)
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(
+    searchParams.get('location') ? [searchParams.get('location')!] : []
+  )
+  const [bedrooms, setBedrooms] = useState<number | null>(
+    searchParams.get('bedrooms') ? parseInt(searchParams.get('bedrooms')!) : null
+  )
+  const [bathrooms, setBathrooms] = useState<number | null>(
+    searchParams.get('bathrooms') ? parseInt(searchParams.get('bathrooms')!) : null
+  )
 
   const handleAmenityChange = (amenity: string) => {
     if (selectedAmenities.includes(amenity)) {
@@ -33,12 +68,62 @@ export function PropertyFilters() {
     }
   }
 
+  // Apply filters to URL
+  const applyFilters = () => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Update or remove location parameter
+    if (selectedLocations.length > 0) {
+      params.set('location', selectedLocations[0]);
+    } else {
+      params.delete('location');
+    }
+
+    // Update or remove price parameters
+    if (priceRange[0] > 0) {
+      params.set('minPrice', priceRange[0].toString());
+    } else {
+      params.delete('minPrice');
+    }
+
+    if (priceRange[1] < 5000000) {
+      params.set('maxPrice', priceRange[1].toString());
+    } else {
+      params.delete('maxPrice');
+    }
+
+    // Update or remove bedrooms parameter
+    if (bedrooms !== null) {
+      params.set('bedrooms', bedrooms.toString());
+    } else {
+      params.delete('bedrooms');
+    }
+
+    // Update or remove bathrooms parameter
+    if (bathrooms !== null) {
+      params.set('bathrooms', bathrooms.toString());
+    } else {
+      params.delete('bathrooms');
+    }
+
+    // Reset to page 1 when filters change
+    params.set('page', '1');
+
+    // Update URL
+    router.push(`/properties?${params.toString()}`);
+  };
+
   const clearFilters = () => {
-    setPriceRange([0, 5000])
+    setPriceRange([0, 5000000])
     setSelectedAmenities([])
     setSelectedLocations([])
     setBedrooms(null)
     setBathrooms(null)
+
+    // Update URL by removing all filter parameters
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    router.push(`/properties?${params.toString()}`);
   }
 
   const hasActiveFilters = () => {
@@ -46,7 +131,7 @@ export function PropertyFilters() {
       selectedAmenities.length > 0 ||
       selectedLocations.length > 0 ||
       priceRange[0] > 0 ||
-      priceRange[1] < 5000 ||
+      priceRange[1] < 5000000 ||
       bedrooms !== null ||
       bathrooms !== null
     )
@@ -146,12 +231,12 @@ export function PropertyFilters() {
           </PopoverTrigger>
           <PopoverContent className="w-80 p-4" align="start">
             <div className="space-y-4">
-              <h4 className="font-medium">Price Range (USD)</h4>
+              <h4 className="font-medium">Price Range (CNY)</h4>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-500">${priceRange[0]}</span>
-                <span className="text-sm text-neutral-500">${priceRange[1]}</span>
+                <span className="text-sm text-neutral-500">¥{priceRange[0]}</span>
+                <span className="text-sm text-neutral-500">¥{priceRange[1]}</span>
               </div>
-              <Slider defaultValue={[0, 5000]} max={5000} step={100} value={priceRange} onValueChange={setPriceRange} />
+              <Slider defaultValue={[0, 5000000]} max={5000000} step={100000} value={priceRange} onValueChange={setPriceRange} />
               <div className="flex justify-between gap-4">
                 <div className="flex-1">
                   <Input
@@ -255,7 +340,7 @@ export function PropertyFilters() {
               <div>
                 <h4 className="font-medium mb-3">Locations</h4>
                 <div className="grid grid-cols-2 gap-3">
-                  {["Kololo", "Naguru", "Bukoto", "Muyenga", "Ntinda", "Bugolobi"].map((location) => (
+                  {LOCATIONS.slice(0, 6).map((location) => (
                     <div key={location} className="flex items-center space-x-2">
                       <Checkbox
                         id={`location-${location.toLowerCase()}`}
@@ -273,7 +358,12 @@ export function PropertyFilters() {
           </PopoverContent>
         </Popover>
 
-        <Button className="h-12 px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white ml-1">Search</Button>
+        <Button
+          className="h-12 px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white ml-1"
+          onClick={applyFilters}
+        >
+          {translate("search")}
+        </Button>
       </div>
 
       {/* Active filters */}
@@ -307,14 +397,14 @@ export function PropertyFilters() {
             </Badge>
           )}
 
-          {(priceRange[0] > 0 || priceRange[1] < 5000) && (
+          {(priceRange[0] > 0 || priceRange[1] < 5000000) && (
             <Badge variant="outline" className="rounded-full px-3 py-1 flex items-center gap-1 bg-white">
-              ${priceRange[0]} - ${priceRange[1]}
+              ¥{priceRange[0]} - ¥{priceRange[1]}
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-4 w-4 ml-1 hover:bg-transparent p-0"
-                onClick={() => setPriceRange([0, 5000])}
+                onClick={() => setPriceRange([0, 5000000])}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -355,7 +445,7 @@ export function PropertyFilters() {
             className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 ml-auto"
             onClick={clearFilters}
           >
-            Clear all
+            {translate("clear_all")}
           </Button>
         </div>
       )}

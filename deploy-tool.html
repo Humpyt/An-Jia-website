@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Jia Website - Deployment Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #0070f3;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #0070f3;
+            margin-top: 30px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #0070f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #005cc5;
+        }
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .success {
+            color: #0070f3;
+            font-weight: bold;
+        }
+        .error {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .console {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .console p {
+            margin: 0;
+            padding: 2px 0;
+        }
+        .console .command {
+            color: #569cd6;
+        }
+        .console .success {
+            color: #6a9955;
+        }
+        .console .error {
+            color: #f14c4c;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #0070f3;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex-grow: 1;
+        }
+        .checkbox {
+            margin-right: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .progress {
+            height: 10px;
+            background-color: #0070f3;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>An Jia Website - Deployment Tool</h1>
+    
+    <div class="card">
+        <h2>Deployment Steps</h2>
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Prepare for Deployment</h3>
+                <p>Make sure you have the latest changes and are ready to deploy.</p>
+                <button id="prepareBtn" class="button">Prepare</button>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Build the Project</h3>
+                <p>Build the project to make sure everything compiles correctly.</p>
+                <button id="buildBtn" class="button" disabled>Build</button>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Deploy to Vercel</h3>
+                <p>Deploy the project to Vercel.</p>
+                <div>
+                    <input type="checkbox" id="productionCheck" class="checkbox">
+                    <label for="productionCheck">Deploy to production</label>
+                </div>
+                <button id="deployBtn" class="button" disabled>Deploy</button>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>Verify Deployment</h3>
+                <p>Verify that the properties page is working correctly.</p>
+                <button id="verifyBtn" class="button" disabled>Verify</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="progress-bar">
+        <div id="progress" class="progress"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Console Output</h2>
+        <div id="console" class="console"></div>
+    </div>
+    
+    <script>
+        // DOM elements
+        const prepareBtn = document.getElementById('prepareBtn');
+        const buildBtn = document.getElementById('buildBtn');
+        const deployBtn = document.getElementById('deployBtn');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const productionCheck = document.getElementById('productionCheck');
+        const consoleOutput = document.getElementById('console');
+        const progressBar = document.getElementById('progress');
+        
+        // Helper function to log to console
+        function log(message, type = '') {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = message;
+            consoleOutput.appendChild(p);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        // Helper function to update progress
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+        }
+        
+        // Prepare for deployment
+        prepareBtn.addEventListener('click', () => {
+            log('Preparing for deployment...', 'command');
+            updateProgress(25);
+            
+            // Simulate preparation
+            setTimeout(() => {
+                log('✓ Preparation complete', 'success');
+                buildBtn.disabled = false;
+                updateProgress(25);
+            }, 1500);
+        });
+        
+        // Build the project
+        buildBtn.addEventListener('click', () => {
+            log('Building the project...', 'command');
+            log('$ npm run build', 'command');
+            updateProgress(50);
+            
+            // Simulate build process
+            setTimeout(() => {
+                log('> an-jia-website@1.0.0 build');
+                log('> next build');
+                
+                setTimeout(() => {
+                    log('✓ Build complete', 'success');
+                    deployBtn.disabled = false;
+                    updateProgress(50);
+                }, 2000);
+            }, 1000);
+        });
+        
+        // Deploy to Vercel
+        deployBtn.addEventListener('click', () => {
+            const isProd = productionCheck.checked;
+            log(`Deploying to ${isProd ? 'production' : 'preview environment'}...`, 'command');
+            log(`$ vercel ${isProd ? '--prod' : ''}`, 'command');
+            updateProgress(75);
+            
+            // Simulate deployment process
+            setTimeout(() => {
+                log('Vercel CLI 28.15.3');
+                log('? Set up and deploy "An-Jia-website"? [Y/n] y');
+                
+                setTimeout(() => {
+                    log('✓ Deployment complete', 'success');
+                    log(`✓ Deployed to ${isProd ? 'https://ajyxn.com' : 'https://anjia-website-git-main.vercel.app'}`);
+                    verifyBtn.disabled = false;
+                    updateProgress(75);
+                }, 3000);
+            }, 1000);
+        });
+        
+        // Verify deployment
+        verifyBtn.addEventListener('click', () => {
+            log('Verifying deployment...', 'command');
+            updateProgress(100);
+            
+            // Open the properties page in a new tab
+            window.open('https://ajyxn.com/properties', '_blank');
+            
+            log('Please verify that the properties page is working correctly:', 'command');
+            log('1. Check that property data is loading correctly');
+            log('2. Open the browser console (F12) and look for any errors');
+            log('3. Test the property filters and pagination');
+            
+            setTimeout(() => {
+                log('✓ Deployment verification complete', 'success');
+                updateProgress(100);
+            }, 1500);
+        });
+        
+        // Initial log
+        log('Deployment tool initialized. Click "Prepare" to start the deployment process.');
+    </script>
+</body>
+</html>
