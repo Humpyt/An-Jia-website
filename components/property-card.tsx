@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Heart } from "lucide-react"
 import { Star } from "lucide-react"
 import { useLanguage } from "@/components/language-switcher"
-import { memo } from "react"
+import { memo, useState } from "react"
 
 interface PropertyCardProps {
   property: any
@@ -14,12 +14,12 @@ interface PropertyCardProps {
 }
 
 function PropertyCardComponent({ property, featured = false }: PropertyCardProps) {
-
+  const [isSaved, setIsSaved] = useState(false)
   const { translate } = useLanguage()
 
   // Use featured image or first image from gallery
   const imageUrl = property.featured_image || (property.images && property.images[0]) || "/placeholder.svg"
-  
+
   // Format price with thousand separator
   const formatPrice = (price: string, currency: string) => {
     if (!price) return 'Price on request';
@@ -32,7 +32,7 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
     }
     return `$${numericPrice.toLocaleString()}`
   }
-  
+
   // Generate a consistent rating based on property id
   const rating = property.id ? (4.5 + (parseInt(property.id) % 5) * 0.1).toFixed(1) : "4.8"
 
@@ -76,7 +76,7 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
         <p className="text-xs text-gray-500 mt-1">
           {property.location || "Naguru, Kampala"}
         </p>
-        
+
         <div className="flex items-center gap-4 text-xs text-gray-600 mt-2">
           <div>
             <span>{property.bedrooms} bedrooms</span>
