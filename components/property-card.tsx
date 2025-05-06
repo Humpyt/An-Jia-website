@@ -121,7 +121,7 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
 
         <div className="mt-2">
           <span className="font-bold text-base">
-            ${property.price}
+            {formatPrice(property.price, property.currency || 'USD')}
           </span>
           <span className="text-gray-500 text-xs">/{property.paymentTerms?.toLowerCase() || "monthly"}</span>
         </div>

@@ -51,13 +51,30 @@ export const GET = createGetHandler(
         bedrooms, bathrooms, propertyType, amenities, cacheBust
       });
 
-      // Import fallback properties directly
-      const { FALLBACK_PROPERTIES, getAllFallbackProperties } = await import('@/lib/property-fallback');
+      // Try to import property data from multiple possible sources
+      let properties = [];
+
+      try {
+        // First try to import from property-data.js
+        const propertyDataModule = await import('@/lib/property-data');
+        properties = propertyDataModule.properties || [];
+        console.log(`Successfully imported ${properties.length} properties from property-data.js`);
+      } catch (importError) {
+        console.error('Error importing from property-data.js:', importError);
+
+        try {
+          // Then try to import from property-fallback.js
+          const fallbackModule = await import('@/lib/property-fallback');
+          properties = fallbackModule.FALLBACK_PROPERTIES || [];
+          console.log(`Successfully imported ${properties.length} properties from property-fallback.js`);
+        } catch (fallbackError) {
+          console.error('Error importing from property-fallback.js:', fallbackError);
+        }
+      }
 
       // Ensure we have properties data
-      let properties = FALLBACK_PROPERTIES;
       if (!properties || properties.length === 0) {
-        console.log('Fallback properties not available, generating default properties');
+        console.log('Property data not available, using hardcoded default properties');
         properties = [
           {
             id: "1",
@@ -68,7 +85,7 @@ export const GET = createGetHandler(
             price: "1500000",
             currency: "CNY",
             amenities: ['WiFi', 'Parking', 'Security'],
-            images: ["/images/properties/property-1.jpg"],
+            images: ["/images/properties/property-placeholder.svg"],
             propertyType: "apartment"
           },
           {
@@ -80,7 +97,7 @@ export const GET = createGetHandler(
             price: "2500000",
             currency: "CNY",
             amenities: ['WiFi', 'Parking', 'Pool'],
-            images: ["/images/properties/property-2.jpg"],
+            images: ["/images/properties/property-placeholder.svg"],
             propertyType: "house"
           }
         ];
@@ -169,7 +186,7 @@ export const GET = createGetHandler(
             price: "1500000",
             currency: "CNY",
             amenities: ['WiFi', 'Parking', 'Security'],
-            images: ["/images/properties/property-1.jpg"],
+            images: ["/images/properties/property-placeholder.svg"],
             propertyType: "apartment"
           },
           {
@@ -181,7 +198,7 @@ export const GET = createGetHandler(
             price: "2500000",
             currency: "CNY",
             amenities: ['WiFi', 'Parking', 'Pool'],
-            images: ["/images/properties/property-2.jpg"],
+            images: ["/images/properties/property-placeholder.svg"],
             propertyType: "house"
           }
         ],

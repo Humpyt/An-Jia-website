@@ -20,47 +20,60 @@ export const GET = createGetHandler(
       const cacheBust = url.searchParams.get('cacheBust') || '';
 
       console.log(`Direct Properties API: Request received with params:`, {
-        page, limit, offset, location, minPrice, maxPrice, 
+        page, limit, offset, location, minPrice, maxPrice,
         bedrooms, bathrooms, propertyType, amenities, cacheBust
       });
 
-      // Import property data directly
-      const { properties: allProperties } = await import('@/lib/property-data');
+      // Try to import property data from multiple possible sources
+      let allProperties = [];
+
+      try {
+        // First try to import from property-data.js
+        const propertyDataModule = await import('@/lib/property-data');
+        allProperties = propertyDataModule.properties || [];
+        console.log(`Successfully imported ${allProperties.length} properties from property-data.js`);
+      } catch (importError) {
+        console.error('Error importing from property-data.js:', importError);
+
+        try {
+          // Then try to import from property-fallback.js
+          const fallbackModule = await import('@/lib/property-fallback');
+          allProperties = fallbackModule.FALLBACK_PROPERTIES || [];
+          console.log(`Successfully imported ${allProperties.length} properties from property-fallback.js`);
+        } catch (fallbackError) {
+          console.error('Error importing from property-fallback.js:', fallbackError);
+        }
+      }
 
       // Ensure we have properties data
       if (!allProperties || allProperties.length === 0) {
-        console.log('Property data not available, generating default properties');
-        return NextResponse.json({
-          properties: [
-            {
-              id: "1",
-              title: "Luxury Apartment in Beijing",
-              location: "Beijing, China",
-              bedrooms: "3",
-              bathrooms: "2",
-              price: "1500000",
-              currency: "CNY",
-              amenities: ['WiFi', 'Parking', 'Security'],
-              images: ["/images/properties/property-1.jpg"],
-              propertyType: "apartment"
-            },
-            {
-              id: "2",
-              title: "Modern Villa in Shanghai",
-              location: "Shanghai, China",
-              bedrooms: "4",
-              bathrooms: "3",
-              price: "2500000",
-              currency: "CNY",
-              amenities: ['WiFi', 'Parking', 'Pool'],
-              images: ["/images/properties/property-2.jpg"],
-              propertyType: "house"
-            }
-          ],
-          totalCount: 2,
-          totalPages: 1,
-          currentPage: 1
-        });
+        console.log('Property data not available, using hardcoded default properties');
+        allProperties = [
+          {
+            id: "1",
+            title: "Luxury Apartment in Beijing",
+            location: "Beijing, China",
+            bedrooms: "3",
+            bathrooms: "2",
+            price: "1500000",
+            currency: "CNY",
+            amenities: ['WiFi', 'Parking', 'Security'],
+            images: ["/images/properties/property-placeholder.svg"],
+            propertyType: "apartment"
+          },
+          {
+            id: "2",
+            title: "Modern Villa in Shanghai",
+            location: "Shanghai, China",
+            bedrooms: "4",
+            bathrooms: "3",
+            price: "2500000",
+            currency: "CNY",
+            amenities: ['WiFi', 'Parking', 'Pool'],
+            images: ["/images/properties/property-placeholder.svg"],
+            propertyType: "house"
+          }
+        ];
       }
 
       console.log(`Direct Properties API: Starting with ${allProperties.length} properties`);
@@ -146,7 +159,7 @@ export const GET = createGetHandler(
             price: "1500000",
             currency: "CNY",
             amenities: ['WiFi', 'Parking', 'Security'],
-            images: ["/images/properties/property-1.jpg"],
+            images: ["/images/properties/property-placeholder.svg"],
             propertyType: "apartment"
           },
           {
@@ -158,7 +171,7 @@ export const GET = createGetHandler(
             price: "2500000",
             currency: "CNY",
             amenities: ['WiFi', 'Parking', 'Pool'],
-            images: ["/images/properties/property-2.jpg"],
+            images: ["/images/properties/property-placeholder.svg"],
             propertyType: "house"
           }
         ],
