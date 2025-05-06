@@ -41,8 +41,23 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
   // Generate a consistent rating based on property id
   const rating = property.id ? (4.5 + (parseInt(property.id) % 5) * 0.1).toFixed(1) : "4.8"
 
+  // Map small property IDs (1-9) to actual WordPress IDs for backward compatibility
+  const getPropertyId = () => {
+    // If it's already a WordPress ID (large number), use it directly
+    if (property.id && parseInt(property.id) > 100) {
+      return property.id;
+    }
+
+    // Map small IDs to WordPress IDs
+    const knownIds = ['224', '212', '193', '182', '164', '159', '154', '143', '141'];
+    const index = (parseInt(property.id) - 1) % knownIds.length;
+    return knownIds[index >= 0 ? index : 0];
+  };
+
+  const propertyId = getPropertyId();
+
   return (
-    <Link href={`/properties/${property.id}`} className="block">
+    <Link href={`/properties/${propertyId}`} className="block">
       <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 group">
         <div className="relative">
           <div className="relative w-full h-48">
