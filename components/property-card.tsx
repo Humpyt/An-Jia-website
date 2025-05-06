@@ -17,8 +17,28 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
   const [isSaved, setIsSaved] = useState(false)
   const { translate } = useLanguage()
 
-  // Use featured image or first image from gallery
-  const imageUrl = property.featured_image || (property.images && property.images[0]) || "/placeholder.svg"
+  // Use featured image or first image from gallery with fallback
+  const getImageUrl = () => {
+    // First try to use the featured image
+    if (property.featured_image) {
+      return property.featured_image;
+    }
+
+    // Then try to use the first image from the gallery
+    if (property.images && property.images.length > 0) {
+      // If the image is from an external source like Unsplash, use a local fallback
+      const firstImage = property.images[0];
+      if (firstImage.includes('unsplash.com')) {
+        return `/images/properties/property-${property.id || '1'}.jpg`;
+      }
+      return firstImage;
+    }
+
+    // Default fallback
+    return "/placeholder.svg";
+  };
+
+  const imageUrl = getImageUrl();
 
   // Format price with thousand separator
   const formatPrice = (price: string, currency: string) => {
@@ -47,6 +67,12 @@ function PropertyCardComponent({ property, featured = false }: PropertyCardProps
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             priority={featured}
+            onError={(e) => {
+              // If image fails to load, replace with placeholder
+              const imgElement = e.currentTarget as HTMLImageElement;
+              imgElement.onerror = null; // Prevent infinite loop
+              imgElement.src = "/placeholder.svg";
+            }}
           />
         </div>
         {(property.isPremium || featured) && (

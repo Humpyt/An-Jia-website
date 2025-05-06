@@ -61,11 +61,12 @@ export default function RootLayout({
 
         {/* Font preloading removed - font file not available */}
 
-        {/* Preload critical images */}
+        {/* Preload critical images - only preload what's needed on initial load */}
         <link
           rel="preload"
           href="/images/headers/luxury-property-header.jpg"
           as="image"
+          fetchpriority="high"
           type="image/jpeg"
         />
 
