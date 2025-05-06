@@ -7,7 +7,7 @@ export interface Property {
   currency: string;
   paymentTerms?: string;
   bedrooms: string;
-  bathrooms?: string; // Added previously
+  bathrooms: string;
   amenities: string[];
   images: string[];
   isPremium?: boolean;
@@ -18,4 +18,14 @@ export interface Property {
   floor?: string;
   units?: string;
   googlePin?: string;
+  agents?: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    company: string;
+  };
+  // Metadata fields
+  _source?: string;
+  _fetchedAt?: string;
 }

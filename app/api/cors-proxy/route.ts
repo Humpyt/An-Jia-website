@@ -28,25 +28,29 @@ export const GET = createGetHandler(
         const cached = API_CACHE.get(targetUrl);
         if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
           console.log(`CORS Proxy: Using cached response for ${targetUrl}`);
-          
+
           // Create a new response with CORS headers
           const response = NextResponse.json(cached.data);
-          
+
           // Add CORS headers
           response.headers.set('Access-Control-Allow-Origin', '*');
           response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
           response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-          
+
           return response;
         }
       }
 
       // Try multiple WordPress API URLs
+      // Always prioritize HTTPS
       const apiUrls = [
-        targetUrl,
-        targetUrl.replace('wp.ajyxn.com', '199.188.200.71'),
-        targetUrl.replace('https://', 'http://'),
-      ];
+        // If the URL is already HTTPS, use it first
+        targetUrl.startsWith('https://') ? targetUrl : targetUrl.replace('http://', 'https://'),
+        // If the URL is HTTP, try it as a fallback
+        targetUrl.startsWith('http://') ? targetUrl : null,
+      ].filter(Boolean) as string[];
+
+      console.log(`[CORS-DIAGNOSTIC] Will try the following URLs:`, apiUrls);
 
       let response = null;
       let error = null;
@@ -54,46 +58,74 @@ export const GET = createGetHandler(
       // Try each URL until one works
       for (const url of apiUrls) {
         try {
-          console.log(`CORS Proxy: Trying ${url}`);
-          
+          console.log(`[CORS-DIAGNOSTIC] Trying ${url}`);
+
           // Fetch with timeout
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
-          
+          const timeoutId = setTimeout(() => {
+            console.log(`[CORS-DIAGNOSTIC] Request to ${url} timed out after 15 seconds`);
+            controller.abort();
+          }, 15000); // Increased timeout to 15 seconds
+
+          const startTime = Date.now();
+          console.log(`[CORS-DIAGNOSTIC] Starting fetch at ${new Date().toISOString()}`);
+
+          // Use more reliable fetch options
           const fetchResponse = await fetch(url, {
             signal: controller.signal,
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
             },
-            next: { revalidate: 60 } // Cache for 60 seconds
+            cache: 'no-store', // Don't cache this request
+            next: { revalidate: 0 } // Don't revalidate
           });
-          
+
+          const responseTime = Date.now() - startTime;
           clearTimeout(timeoutId);
-          
+
+          console.log(`[CORS-DIAGNOSTIC] Response received in ${responseTime}ms with status: ${fetchResponse.status}`);
+
+          // Log headers for debugging
+          const headers = Object.fromEntries([...fetchResponse.headers.entries()]);
+          console.log(`[CORS-DIAGNOSTIC] Response headers:`, headers);
+
           if (!fetchResponse.ok) {
-            throw new Error(`API returned ${fetchResponse.status}`);
+            console.error(`[CORS-DIAGNOSTIC] Response not OK: ${fetchResponse.status} ${fetchResponse.statusText}`);
+
+            // For 404 errors, we want to return a proper error response
+            if (fetchResponse.status === 404) {
+              return NextResponse.json(
+                { error: 'Resource not found', status: 404 },
+                { status: 404 }
+              );
+            }
+
+            // For other errors, throw to try the next URL
+            throw new Error(`API returned ${fetchResponse.status}: ${fetchResponse.statusText}`);
           }
-          
+
           // Parse the response
+          console.log(`[CORS-DIAGNOSTIC] Parsing response body...`);
           const data = await fetchResponse.json();
-          
+          console.log(`[CORS-DIAGNOSTIC] Response parsed successfully. Data structure:`, Object.keys(data));
+
           // Cache the response
           API_CACHE.set(targetUrl, {
             timestamp: Date.now(),
             data
           });
-          
+
           // Create a new response with CORS headers
           response = NextResponse.json(data);
-          
+
           // Add CORS headers
           response.headers.set('Access-Control-Allow-Origin', '*');
           response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
           response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-          
+
           console.log(`CORS Proxy: Successfully proxied ${url}`);
-          
+
           // We got a successful response, so break the loop
           break;
         } catch (e) {
@@ -110,7 +142,7 @@ export const GET = createGetHandler(
       // If all URLs failed, return an error
       console.error('CORS Proxy: All URLs failed');
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to fetch from WordPress API',
           message: error?.message || 'Unknown error',
           targetUrl
@@ -130,11 +162,11 @@ export const GET = createGetHandler(
 // Handle OPTIONS requests for CORS preflight
 export const OPTIONS = (request: NextRequest) => {
   const response = new NextResponse(null, { status: 204 });
-  
+
   // Add CORS headers
   response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-  
+
   return response;
 };

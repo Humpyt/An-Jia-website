@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Spinner } from '@/components/spinner';
 import { PropertyImageGallery } from '@/components/property-image-gallery';
 import { PropertyFeatures } from '@/components/property-features';
 import { PropertyContact } from '@/components/property-contact';
 import { PropertyDescription } from '@/components/property-description';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { RefreshCw, AlertTriangle, CheckCircle, MapPin, Bed, Bath, Home } from 'lucide-react';
 
 interface Agent {
   id: string;
@@ -37,43 +41,55 @@ interface Property {
   propertyType: string;
   squareMeters?: string;
   agents?: Agent;
+  _source?: string;
+  _fetchedAt?: string;
 }
 
 interface ClientPropertyDetailsProps {
   id: string;
   initialProperty?: Property | null;
+  dataSource?: string;
+  serverError?: string | null;
 }
 
-export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDetailsProps) {
+export function ClientPropertyDetails({
+  id,
+  initialProperty,
+  dataSource = 'unknown',
+  serverError = null
+}: ClientPropertyDetailsProps) {
   const [property, setProperty] = useState<Property | null>(initialProperty || null);
-  const [loading, setLoading] = useState(!initialProperty);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(serverError);
+  const [source, setSource] = useState<string>(dataSource);
 
-  // Function to fetch property details with enhanced error handling and fallbacks
-  const fetchPropertyDetails = async () => {
-    if (initialProperty && initialProperty.title !== "Loading Property...") {
-      console.log('Using initial property data:', initialProperty.title);
-      return; // Skip fetching if we already have complete initial data
+  // Function to fetch property details from our consolidated API endpoint
+  const fetchPropertyDetails = async (skipCache = false) => {
+    // If refreshing, don't reset the current property
+    if (!refreshing) {
+      setLoading(true);
     }
-
-    setLoading(true);
     setError(null);
 
     try {
-      console.log(`Fetching property details for ID: ${id}`);
+      console.log(`[CLIENT] Fetching property details for ID: ${id}, skipCache: ${skipCache}`);
 
-      // Add cache buster to avoid stale data
-      const cacheBuster = `cacheBust=${Date.now()}`;
+      // Add cache buster and skipCache parameter
+      const params = new URLSearchParams({
+        cacheBust: Date.now().toString(),
+        skipCache: skipCache.toString()
+      });
 
-      // Try the direct API endpoint first (uses mock data directly)
-      const directApiUrl = `/api/properties-direct/${id}?${cacheBuster}`;
-      console.log(`Trying direct API endpoint: ${directApiUrl}`);
+      // Use our consolidated property API endpoint
+      const apiUrl = `/api/property/${id}?${params}`;
+      console.log(`[CLIENT] Using property API endpoint: ${apiUrl}`);
 
       // Fetch with timeout to avoid hanging requests
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      const apiResponse = await fetch(directApiUrl, {
+      const apiResponse = await fetch(apiUrl, {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
@@ -84,186 +100,158 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
       });
 
       clearTimeout(timeoutId);
+      console.log(`[CLIENT] API response status:`, apiResponse.status);
 
       if (!apiResponse.ok) {
+        console.error(`[CLIENT] API error:`, apiResponse.status, apiResponse.statusText);
         throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
       }
 
       const data = await apiResponse.json();
+      console.log(`[CLIENT] API response structure:`, Object.keys(data));
 
       if (!data.property) {
         throw new Error('Invalid API response: missing property data');
       }
 
-      // Validate and enhance the property data
-      const validatedProperty = {
-        ...data.property,
-        // Ensure these fields exist with fallbacks
-        id: data.property.id || id,
-        title: data.property.title || 'Property Details',
-        description: data.property.description || '<p>No description available</p>',
-        location: data.property.location || 'Location not specified',
-        bedrooms: data.property.bedrooms || '0',
-        bathrooms: data.property.bathrooms || '0',
-        price: data.property.price || 'Contact for price',
-        currency: data.property.currency || 'USD',
-        amenities: Array.isArray(data.property.amenities) ? data.property.amenities : [],
-        images: Array.isArray(data.property.images) && data.property.images.length > 0
-          ? data.property.images
-          : ['/images/properties/property-placeholder.jpg'],
-        propertyType: data.property.propertyType || 'property'
-      };
+      // Update the property state with the fetched data
+      setProperty(data.property);
+      setSource(data.source || data.property._source || 'api');
+      console.log(`[CLIENT] Successfully loaded property ${id} from ${data.source || 'api'}`);
 
-      setProperty(validatedProperty);
-      console.log(`Successfully loaded property ${id} from direct API:`, validatedProperty.title);
+      return true;
     } catch (err: any) {
-      console.error('Error fetching property details from direct API:', err);
+      console.error('[CLIENT] Error fetching property details:', err);
 
-      // Try the regular API endpoint as fallback
-      try {
-        console.log('Trying regular API endpoint as fallback...');
-        const regularApiUrl = `/api/properties/${id}?${cacheBuster}`;
-
-        const fallbackController = new AbortController();
-        const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 10000);
-
-        const fallbackResponse = await fetch(regularApiUrl, {
-          signal: fallbackController.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          cache: 'no-store',
-        });
-
-        clearTimeout(fallbackTimeoutId);
-
-        if (!fallbackResponse.ok) {
-          throw new Error(`Fallback API returned ${fallbackResponse.status}`);
-        }
-
-        const fallbackData = await fallbackResponse.json();
-
-        if (!fallbackData.property) {
-          throw new Error('Invalid fallback API response');
-        }
-
-        const validatedFallbackProperty = {
-          ...fallbackData.property,
-          id: fallbackData.property.id || id,
-          title: fallbackData.property.title || 'Property Details',
-          description: fallbackData.property.description || '<p>No description available</p>',
-          location: fallbackData.property.location || 'Location not specified',
-          bedrooms: fallbackData.property.bedrooms || '0',
-          bathrooms: fallbackData.property.bathrooms || '0',
-          price: fallbackData.property.price || 'Contact for price',
-          currency: fallbackData.property.currency || 'USD',
-          amenities: Array.isArray(fallbackData.property.amenities) ? fallbackData.property.amenities : [],
-          images: Array.isArray(fallbackData.property.images) && fallbackData.property.images.length > 0
-            ? fallbackData.property.images
-            : ['/images/properties/property-placeholder.jpg'],
-          propertyType: fallbackData.property.propertyType || 'property'
-        };
-
-        setProperty(validatedFallbackProperty);
-        console.log(`Successfully loaded property from fallback API:`, validatedFallbackProperty.title);
-        return;
-      } catch (fallbackError) {
-        console.error('Error using fallback API:', fallbackError);
+      // Only set error if we don't already have property data
+      if (!property || refreshing) {
+        setError(err.message || 'Failed to load property details');
       }
 
-      // If direct import fails, try to use property-fallback.js
-      try {
-        console.log('Attempting to use property-fallback.js...');
-        const { getFallbackProperty } = await import('@/lib/property-fallback');
-        const fallbackProperty = getFallbackProperty(id);
-
-        if (fallbackProperty) {
-          console.log('Successfully loaded property from fallback system');
-          setProperty(fallbackProperty);
-          return;
-        }
-      } catch (fallbackError) {
-        console.error('Error using property-fallback.js:', fallbackError);
-      }
-
-      // If all else fails, use minimal fallback data
-      console.log('All fallback methods failed, using minimal property data');
-      setError('Could not load complete property details. Showing limited information.');
-
-      setProperty({
-        id,
-        title: "Property Information",
-        description: "<p>Property details are being updated.</p>",
-        location: "An Jia Properties",
-        bedrooms: "0",
-        bathrooms: "0",
-        price: "Contact agent",
-        currency: "USD",
-        amenities: ["WiFi", "Parking", "Security"],
-        images: [
-          "/images/properties/property-placeholder.jpg"
-        ],
-        propertyType: "property",
-        agents: {
-          id: "agent-1",
-          name: "John Doe",
-          email: "john.doe@example.com",
-          phone: "+256 701 234 567",
-          company: "An Jia You Xuan Real Estate"
-        }
-      });
+      return false;
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  // Fetch property details on initial load
-  useEffect(() => {
-    console.log('ClientPropertyDetails useEffect triggered with id:', id);
-    console.log('Initial property state:', initialProperty);
-    fetchPropertyDetails();
+  // Function to handle manual refresh
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchPropertyDetails(true); // Skip cache when manually refreshing
+  };
 
-    // Log the current state after the fetch attempt
-    return () => {
-      console.log('Component unmounting or id changed. Current property state:', property);
-    };
+  // Fetch property details on initial load if needed
+  useEffect(() => {
+    // Only fetch if we don't have complete data or if we have a server error
+    if (
+      !initialProperty ||
+      initialProperty.title === "Loading Property..." ||
+      serverError
+    ) {
+      fetchPropertyDetails();
+    }
   }, [id]);
 
-  if (loading) {
+  // Show loading state
+  if (loading && !property) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Spinner size="lg" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <Spinner size="lg" />
+          <span className="ml-3 text-gray-600">Loading property details...</span>
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  // Show error state if we have an error and no property data
+  if (error && !property) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        <p>{error}</p>
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+
+        <div className="text-center py-8">
+          <Button onClick={handleRefresh} variant="outline" className="mx-auto">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
 
+  // Show not found state
   if (!property) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-xl font-semibold mb-2">Property not found</h3>
-        <p className="text-gray-600">
-          The property you are looking for does not exist or has been removed.
-        </p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <h3 className="text-xl font-semibold mb-2">Property not found</h3>
+          <p className="text-gray-600 mb-6">
+            The property you are looking for does not exist or has been removed.
+          </p>
+          <Link href="/properties">
+            <Button>Browse All Properties</Button>
+          </Link>
+        </div>
       </div>
     );
   }
+
+  // Format price for display
+  const formattedPrice = property.price && !isNaN(parseInt(property.price))
+    ? parseInt(property.price).toLocaleString()
+    : property.price;
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Data Source Indicator & Refresh Button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex items-center text-sm text-gray-500">
+          <span className="mr-2">Data source:</span>
+          <span className="font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+            {source}
+          </span>
+          {property._fetchedAt && (
+            <span className="ml-2 text-xs text-gray-400">
+              Fetched: {new Date(property._fetchedAt).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          size="sm"
+          disabled={refreshing}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh Data'}
+        </Button>
+      </div>
+
+      {/* Error Alert (shown even if we have property data) */}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Warning</AlertTitle>
+          <AlertDescription>
+            {error} Using potentially incomplete data.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Breadcrumb Navigation */}
       <div className="flex items-center text-sm text-gray-500 mb-6">
-        <a href="/" className="hover:text-rose-500 transition-colors">Home</a>
+        <Link href="/" className="hover:text-rose-500 transition-colors">Home</Link>
         <span className="mx-2">›</span>
-        <a href="/properties" className="hover:text-rose-500 transition-colors">Properties</a>
+        <Link href="/properties" className="hover:text-rose-500 transition-colors">Properties</Link>
         <span className="mx-2">›</span>
         <span className="text-gray-700 font-medium">{property.title}</span>
       </div>
@@ -273,18 +261,26 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
           <div>
             <h1 className="text-3xl font-bold mb-2 text-gray-900">{property.title}</h1>
-            <p className="text-xl text-gray-600 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-rose-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
+            <div className="flex items-center text-xl text-gray-600">
+              <MapPin className="h-5 w-5 mr-2 text-rose-500" />
               {property.location}
-            </p>
+            </div>
+            {property.googlePin && (
+              <a
+                href={property.googlePin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-rose-500 hover:text-rose-700 mt-1 inline-block"
+              >
+                View on Google Maps
+              </a>
+            )}
           </div>
 
           <div className="bg-rose-50 border border-rose-100 rounded-lg px-6 py-4 text-center">
             <p className="text-sm text-gray-500 mb-1">Price</p>
             <div className="text-3xl font-bold text-rose-600">
-              {property.currency} {parseInt(property.price).toLocaleString()}
+              {property.currency} {formattedPrice}
             </div>
             {property.paymentTerms && (
               <p className="text-sm text-gray-500 mt-1">
@@ -297,11 +293,17 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
         {/* Property Key Features */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white shadow-sm border border-gray-100 px-4 py-3 rounded-lg text-center">
-            <p className="text-xs text-gray-500 uppercase mb-1">Bedrooms</p>
+            <div className="flex justify-center items-center mb-1">
+              <Bed className="h-4 w-4 text-gray-500 mr-1" />
+              <p className="text-xs text-gray-500 uppercase">Bedrooms</p>
+            </div>
             <p className="text-xl font-semibold text-gray-800">{property.bedrooms}</p>
           </div>
           <div className="bg-white shadow-sm border border-gray-100 px-4 py-3 rounded-lg text-center">
-            <p className="text-xs text-gray-500 uppercase mb-1">Bathrooms</p>
+            <div className="flex justify-center items-center mb-1">
+              <Bath className="h-4 w-4 text-gray-500 mr-1" />
+              <p className="text-xs text-gray-500 uppercase">Bathrooms</p>
+            </div>
             <p className="text-xl font-semibold text-gray-800">{property.bathrooms}</p>
           </div>
           {property.squareMeters && (
@@ -311,7 +313,10 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
             </div>
           )}
           <div className="bg-white shadow-sm border border-gray-100 px-4 py-3 rounded-lg text-center">
-            <p className="text-xs text-gray-500 uppercase mb-1">Type</p>
+            <div className="flex justify-center items-center mb-1">
+              <Home className="h-4 w-4 text-gray-500 mr-1" />
+              <p className="text-xs text-gray-500 uppercase">Type</p>
+            </div>
             <p className="text-xl font-semibold text-gray-800 capitalize">{property.propertyType}</p>
           </div>
         </div>
@@ -352,54 +357,6 @@ export function ClientPropertyDetails({ id, initialProperty }: ClientPropertyDet
               propertyId={property.id}
               propertyTitle={property.title}
             />
-          </div>
-        </div>
-      </div>
-
-      {/* Similar Properties Section */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900">Similar Properties</h2>
-        <p className="text-gray-500 mb-8">You might also be interested in these properties</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* This would ideally be populated with actual similar properties */}
-          <div className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-48 bg-gray-200 relative">
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                Similar property image
-              </div>
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-1">Similar Property</h3>
-              <p className="text-gray-500 text-sm mb-2">Similar location</p>
-              <p className="font-bold text-rose-600">Contact for price</p>
-            </div>
-          </div>
-
-          <div className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-48 bg-gray-200 relative">
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                Similar property image
-              </div>
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-1">Similar Property</h3>
-              <p className="text-gray-500 text-sm mb-2">Similar location</p>
-              <p className="font-bold text-rose-600">Contact for price</p>
-            </div>
-          </div>
-
-          <div className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-48 bg-gray-200 relative">
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                Similar property image
-              </div>
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-1">Similar Property</h3>
-              <p className="text-gray-500 text-sm mb-2">Similar location</p>
-              <p className="font-bold text-rose-600">Contact for price</p>
-            </div>
           </div>
         </div>
       </div>

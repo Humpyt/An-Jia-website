@@ -74,7 +74,15 @@ export function ResilientImage({
     // Only change the source if it's different to avoid infinite loops
     if (imgSrc !== newSrc) {
       console.log(`Image failed to load: ${imgSrc}, using fallback: ${newSrc}`);
-      setImgSrc(newSrc);
+
+      // Add a small delay before setting the new source to avoid potential race conditions
+      setTimeout(() => {
+        setImgSrc(newSrc);
+      }, 100);
+    } else {
+      // If we're already using a fallback and it still fails, use a static fallback
+      console.log(`Fallback image also failed to load: ${imgSrc}, using static fallback`);
+      setImgSrc('/images/properties/property-placeholder.jpg');
     }
   };
 

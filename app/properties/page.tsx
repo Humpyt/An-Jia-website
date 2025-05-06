@@ -59,7 +59,7 @@ export default async function PropertiesPage(props: {
       <PageHeader
         title="Properties"
         description="Find your perfect property in our extensive listings"
-        imagePath="/images/headers/contact-header.jpg"
+        imagePath="/images/headers/luxury-property-header.jpg"
         height="medium"
       />
 

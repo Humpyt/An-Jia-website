@@ -44,7 +44,8 @@ export function PageHeader({
   const { translate } = useLanguage()
 
   // Determine image path - use provided path or get from collection based on title
-  const headerImage = imagePath || headerImages[title.toLowerCase() as keyof typeof headerImages] || headerImages.default
+  // Default to a reliable fallback image that we know exists
+  const headerImage = imagePath || "/images/properties/property-placeholder.jpg"
 
   // Determine height class
   const heightClass = {

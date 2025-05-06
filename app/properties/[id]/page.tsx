@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
-import { getPropertyById, incrementPropertyViews } from "@/app/actions/wordpress-properties"
+import { getPropertyById } from "@/lib/property-service"
 import Link from "next/link"
 import Image from "next/image"
 import type { Property } from "@/app/types/property";
@@ -13,9 +13,6 @@ import { PageHeader } from "@/components/page-header"
 import { Spinner } from "@/components/spinner"
 import { ClientPropertyDetails } from "@/components/client-property-details"
 
-// Description enhancement removed
-
-
 type Props = {
   params: {
     id: string;
@@ -24,6 +21,26 @@ type Props = {
 
 // This function runs before the page component and can safely access params
 export async function generateMetadata({ params }: Props) {
+  try {
+    // Try to get property data for the metadata
+    const property = await getPropertyById(params.id);
+
+    if (property) {
+      return {
+        title: `${property.title} - An Jia You Xuan`,
+        description: `${property.bedrooms} bedroom property in ${property.location}`,
+        openGraph: {
+          title: property.title,
+          description: `${property.bedrooms} bedroom property in ${property.location}`,
+          images: property.images[0] ? [property.images[0]] : undefined,
+        },
+      };
+    }
+  } catch (error) {
+    console.error(`Error generating metadata for property ${params.id}:`, error);
+  }
+
+  // Fallback metadata
   return {
     title: `Property ${params.id} - An Jia You Xuan`,
   };
@@ -34,21 +51,25 @@ export default async function PropertyPage(props: Props) {
   const id = props.params.id;
 
   // Try to fetch initial property data from the server
-  let property: Property;
+  let property: Property | null = null;
+  let dataSource = 'server';
+  let error = null;
 
   try {
-    // First try to get property data from the server action
-    console.log(`Server: Attempting to fetch property ${id} from server action`);
-    const serverProperty = await getPropertyById(id);
+    // Fetch property data using our centralized property service
+    console.log(`[SERVER] Attempting to fetch property ${id}`);
+    property = await getPropertyById(id);
 
-    if (serverProperty) {
-      console.log(`Server: Successfully fetched property ${id} from server action`);
-      property = serverProperty;
-    } else {
-      throw new Error('Property not found');
+    if (!property) {
+      console.error(`[SERVER] Property ${id} not found`);
+      return notFound();
     }
-  } catch (error) {
-    console.error(`Server: Error fetching property ${id}:`, error);
+
+    console.log(`[SERVER] Successfully fetched property ${id} from ${property._source || 'unknown source'}`);
+    dataSource = property._source || 'server';
+  } catch (err: any) {
+    console.error(`[SERVER] Error fetching property ${id}:`, err);
+    error = err.message || 'Failed to load property';
 
     // Create a minimal property object for initial rendering
     // The client component will handle the actual data fetching
@@ -62,10 +83,15 @@ export default async function PropertyPage(props: Props) {
       price: "0",
       currency: "USD",
       amenities: [],
-      images: ["/images/headers/property-detail.jpg"],
+      images: ["/images/properties/property-placeholder.jpg"],
       propertyType: "property"
     };
   }
+
+  // Use the first property image for the header if available, otherwise use a placeholder
+  const headerImagePath = property.images && property.images.length > 0
+    ? property.images[0]
+    : "/images/properties/property-placeholder.jpg";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -85,7 +111,7 @@ export default async function PropertyPage(props: Props) {
       <PageHeader
         title={property.title}
         description={property.location}
-        imagePath={property.images[0] || "/images/headers/property-detail.jpg"}
+        imagePath={headerImagePath}
         imageAlt={property.title}
         height="medium"
       />
@@ -98,7 +124,12 @@ export default async function PropertyPage(props: Props) {
         }>
           {/* Use a key to ensure React re-renders when property changes */}
           <div key={property.id}>
-            <ClientPropertyDetails id={id} initialProperty={property} />
+            <ClientPropertyDetails
+              id={id}
+              initialProperty={property}
+              dataSource={dataSource}
+              serverError={error}
+            />
           </div>
         </Suspense>
       </ErrorBoundary>

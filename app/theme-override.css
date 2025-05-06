@@ -1,47 +1,10 @@
-:root {
-  --primary: 243 72% 41%; /* #261FB3 in HSL */
-  --primary-foreground: 0 0% 100%;
-  
-  /* Override any rose-500 colors used in the app */
-  --rose-50: 243 72% 95%;
-  --rose-100: 243 72% 90%;
-  --rose-500: 243 72% 41%;
-  --rose-600: 243 72% 36%;
-}
-
-/* Override hover states that use rose color */
-.hover\:text-rose-500:hover {
-  color: #261FB3 !important;
-}
-
-.hover\:bg-rose-50:hover {
-  background-color: hsl(243, 72%, 95%) !important;
-}
-
-.hover\:bg-rose-600:hover {
-  background-color: hsl(243, 72%, 36%) !important;
-}
-
-.hover\:border-rose-500:hover {
-  border-color: #261FB3 !important;
-}
-
-.text-rose-500 {
-  color: #261FB3 !important;
-}
-
-.bg-rose-500 {
-  background-color: #261FB3 !important;
-}
-
-.bg-rose-50 {
-  background-color: hsl(243, 72%, 95%) !important;
-}
-
-.bg-rose-100 {
-  background-color: hsl(243, 72%, 90%) !important;
-}
-
-.border-rose-500 {
-  border-color: #261FB3 !important;
-}
+:root{--primary:243 72% 41%;--primary-foreground:0 0% 100%;--rose-50:243 72% 95%;--rose-100:243 72% 90%;--rose-500:243 72% 41%;--rose-600:243 72% 36%}
+.hover\:text-rose-500:hover{color:#261fb3!important}
+.hover\:bg-rose-50:hover{background-color:#e9e9fb!important}
+.hover\:bg-rose-600:hover{background-color:#20199d!important}
+.hover\:border-rose-500:hover{border-color:#261fb3!important}
+.text-rose-500{color:#261fb3!important}
+.bg-rose-500{background-color:#261fb3!important}
+.bg-rose-50{background-color:#e9e9fb!important}
+.bg-rose-100{background-color:#d4d3f7!important}
+.border-rose-500{border-color:#261fb3!important}

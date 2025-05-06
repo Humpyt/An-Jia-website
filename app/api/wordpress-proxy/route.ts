@@ -9,8 +9,8 @@ export const GET = createGetHandler(
       const url = new URL(request.url);
       const path = url.searchParams.get('path') || '';
 
-      // WordPress API URL (using HTTP for direct server-side requests)
-      const wpApiUrl = process.env.WORDPRESS_DIRECT_API_URL || 'http://wp.ajyxn.com/wp-json';
+      // WordPress API URL (now using HTTPS for direct server-side requests)
+      const wpApiUrl = process.env.WORDPRESS_DIRECT_API_URL || 'https://wp.ajyxn.com/wp-json';
 
       console.log(`Proxying WordPress request to: ${wpApiUrl}/${path}`);
 
@@ -28,7 +28,7 @@ export const GET = createGetHandler(
         console.error(`WordPress API error: ${response.status} ${response.statusText}`);
 
         // Try fallback URL if primary fails
-        const fallbackUrl = process.env.WORDPRESS_FALLBACK_API_URL || 'http://199.188.200.71/wp-json';
+        const fallbackUrl = process.env.WORDPRESS_FALLBACK_API_URL || 'https://wp.ajyxn.com/wp-json';
         console.log(`Trying fallback URL: ${fallbackUrl}/${path}`);
 
         const fallbackResponse = await fetch(`${fallbackUrl}/${path}`, {

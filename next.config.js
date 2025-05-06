@@ -21,10 +21,10 @@ const nextConfig = {
   env: {
     // Use our proxy API endpoints instead of direct WordPress URLs
     NEXT_PUBLIC_WORDPRESS_API_URL: process.env.NEXT_PUBLIC_WORDPRESS_API_URL || '/api/wordpress-proxy',
-    WORDPRESS_API_URL: process.env.WORDPRESS_API_URL || 'http://wp.ajyxn.com/wp-json',
-    WORDPRESS_FALLBACK_API_URL: process.env.WORDPRESS_FALLBACK_API_URL || 'http://199.188.200.71/wp-json',
-    // Original WordPress URL for server-side requests (using HTTP)
-    WORDPRESS_DIRECT_API_URL: 'http://wp.ajyxn.com/wp-json',
+    WORDPRESS_API_URL: process.env.WORDPRESS_API_URL || 'https://wp.ajyxn.com/wp-json',
+    WORDPRESS_FALLBACK_API_URL: process.env.WORDPRESS_FALLBACK_API_URL || 'https://wp.ajyxn.com/wp-json',
+    // Original WordPress URL for server-side requests (now using HTTPS)
+    WORDPRESS_DIRECT_API_URL: 'https://wp.ajyxn.com/wp-json',
     VERCEL_ENV: process.env.VERCEL_ENV || 'development',
     VERCEL_URL: process.env.VERCEL_URL || 'localhost:3000',
   },
@@ -55,8 +55,8 @@ const nextConfig = {
   // SWC minification is enabled by default in Next.js 15
   // Add rewrites for WordPress API, admin, and image handling
   async rewrites() {
-    // Use the WordPress hosting IP directly to avoid circular references
-    const wpHostingIP = '199.188.200.71';
+    // Use the WordPress domain with HTTPS
+    const wpDomain = 'wp.ajyxn.com';
     return [
       // Custom image handling for external images
       {
@@ -66,37 +66,37 @@ const nextConfig = {
       // WordPress API
       {
         source: '/wp-json/:path*',
-        destination: `http://${wpHostingIP}/wp-json/:path*`,
+        destination: `https://${wpDomain}/wp-json/:path*`,
       },
       // WordPress Admin
       {
         source: '/wp-admin/:path*',
-        destination: `http://${wpHostingIP}/wp-admin/:path*`,
+        destination: `https://${wpDomain}/wp-admin/:path*`,
       },
       // WordPress Login
       {
         source: '/wp-login.php',
-        destination: `http://${wpHostingIP}/wp-login.php`,
+        destination: `https://${wpDomain}/wp-login.php`,
       },
       // WordPress Content
       {
         source: '/wp-content/:path*',
-        destination: `http://${wpHostingIP}/wp-content/:path*`,
+        destination: `https://${wpDomain}/wp-content/:path*`,
       },
       // WordPress Includes
       {
         source: '/wp-includes/:path*',
-        destination: `http://${wpHostingIP}/wp-includes/:path*`,
+        destination: `https://${wpDomain}/wp-includes/:path*`,
       },
       // WordPress AJAX
       {
         source: '/wp-ajax/:path*',
-        destination: `http://${wpHostingIP}/wp-ajax/:path*`,
+        destination: `https://${wpDomain}/wp-ajax/:path*`,
       },
       // WordPress Uploads
       {
         source: '/uploads/:path*',
-        destination: `http://${wpHostingIP}/uploads/:path*`,
+        destination: `https://${wpDomain}/uploads/:path*`,
       },
       // Fallback for missing images to our custom handler
       {
@@ -121,7 +121,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co http://wp.ajyxn.com https://wp.ajyxn.com https://ajyxn.com http://199.188.200.71; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.vercel.app https://*.supabase.co https://wp.ajyxn.com https://ajyxn.com; img-src 'self' data: blob: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self'; manifest-src 'self';"
           },
           {
             key: 'X-Content-Type-Options',
@@ -134,6 +134,24 @@ const nextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
+          }
+        ]
+      },
+      {
+        // Add specific headers for the manifest file to ensure it's properly served
+        source: '/app-manifest.json',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json'
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
           }
         ]
       }

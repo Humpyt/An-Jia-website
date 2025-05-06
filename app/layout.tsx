@@ -29,7 +29,7 @@ export const metadata: Metadata = {
       { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' }
     ]
   },
-  manifest: '/site.webmanifest',
+  manifest: '/api/manifest',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -56,19 +56,16 @@ export default function RootLayout({
         {/* Content Security Policy */}
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co http://wp.ajyxn.com https://wp.ajyxn.com https://ajyxn.com http://199.188.200.71 https://an-jia-website-gr9b2nwk0-cavemos-projects.vercel.app; img-src 'self' data: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self';"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.vercel.app https://*.supabase.co https://wp.ajyxn.com https://ajyxn.com; img-src 'self' data: blob: https://* http://*; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self'; manifest-src 'self';"
         />
 
         {/* Font preloading removed - font file not available */}
 
         {/* Preload critical images - only preload what's needed on initial load */}
-        <link
-          rel="preload"
-          href="/images/headers/luxury-property-header.jpg"
-          as="image"
-          fetchpriority="high"
-          type="image/jpeg"
-        />
+        {/* Removed preload link to avoid warnings */}
+
+        {/* Explicitly add manifest link - use API route to ensure proper headers */}
+        <link rel="manifest" href="/api/manifest" />
 
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://wp.ajyxn.com" />
