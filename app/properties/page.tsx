@@ -52,13 +52,70 @@ export default async function PropertiesPage(props: {
       : undefined
   }
 
-  // Use empty initial data and let client component handle fetching
-  const properties = [];
-  const totalCount = 0;
-  const totalPages = 0;
-  const error = null;
+  // Fetch initial data from fallback properties
+  let properties = [];
+  let totalCount = 0;
+  let totalPages = 0;
+  let error = null;
 
-  // Format data to match what PropertiesContent expects
+  try {
+    // Import fallback properties directly
+    const { FALLBACK_PROPERTIES } = await import('@/lib/property-fallback');
+
+    // Use fallback properties
+    let filteredProperties = [...FALLBACK_PROPERTIES];
+
+    // Apply filters
+    if (filters.location) {
+      filteredProperties = filteredProperties.filter(p =>
+        p.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+
+    if (filters.minPrice) {
+      filteredProperties = filteredProperties.filter(p =>
+        parseInt(p.price) >= filters.minPrice
+      );
+    }
+
+    if (filters.maxPrice) {
+      filteredProperties = filteredProperties.filter(p =>
+        parseInt(p.price) <= filters.maxPrice
+      );
+    }
+
+    if (filters.bedrooms) {
+      filteredProperties = filteredProperties.filter(p =>
+        parseInt(p.bedrooms) === filters.bedrooms
+      );
+    }
+
+    if (filters.bathrooms) {
+      filteredProperties = filteredProperties.filter(p =>
+        parseInt(p.bathrooms) === filters.bathrooms
+      );
+    }
+
+    if (filters.propertyType) {
+      filteredProperties = filteredProperties.filter(p =>
+        p.propertyType === filters.propertyType
+      );
+    }
+
+    // Calculate total count and pages
+    totalCount = filteredProperties.length;
+    totalPages = Math.ceil(totalCount / limit);
+
+    // Apply pagination
+    properties = filteredProperties.slice(offset, offset + limit);
+
+    console.log(`Server: Providing ${properties.length} initial properties out of ${totalCount} total`);
+  } catch (err) {
+    console.error('Error fetching initial properties:', err);
+    error = 'Failed to fetch initial properties';
+  }
+
+  // Format data to match what ClientProperties expects
   const propertiesData = {
     data: properties || [],
     totalCount,

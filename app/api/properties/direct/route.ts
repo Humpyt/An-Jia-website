@@ -1,32 +1,5 @@
-import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
-import { createProperty } from '@/app/actions/wordpress-properties'
-import { POST as createPostHandler, GET as createGetHandler } from '@/lib/api-utils'
-
-// Using our custom route handler wrapper for correct typing
-export const POST = createPostHandler(
-  async (request) => {
-    try {
-      const data = await request.json()
-      const result = await createProperty(data)
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 400 }
-        )
-      }
-
-      return NextResponse.json(result)
-    } catch (error: any) {
-      console.error('Error in property creation:', error)
-      return NextResponse.json(
-        { error: error.message || 'Internal server error' },
-        { status: 500 }
-      )
-    }
-  }
-)
+import { NextResponse } from 'next/server';
+import { GET as createGetHandler } from '@/lib/api-utils';
 
 // Using our custom route handler wrapper for correct typing
 export const GET = createGetHandler(
@@ -46,50 +19,54 @@ export const GET = createGetHandler(
       const amenities = url.searchParams.get('amenities') || '';
       const cacheBust = url.searchParams.get('cacheBust') || '';
 
-      console.log(`Properties API: Request received with params:`, {
-        page, limit, offset, location, minPrice, maxPrice,
+      console.log(`Direct Properties API: Request received with params:`, {
+        page, limit, offset, location, minPrice, maxPrice, 
         bedrooms, bathrooms, propertyType, amenities, cacheBust
       });
 
-      // Import fallback properties directly
-      const { FALLBACK_PROPERTIES, getAllFallbackProperties } = await import('@/lib/property-fallback');
+      // Import property data directly
+      const { properties: allProperties } = await import('@/lib/property-data');
 
       // Ensure we have properties data
-      let properties = FALLBACK_PROPERTIES;
-      if (!properties || properties.length === 0) {
-        console.log('Fallback properties not available, generating default properties');
-        properties = [
-          {
-            id: "1",
-            title: "Luxury Apartment in Beijing",
-            location: "Beijing, China",
-            bedrooms: "3",
-            bathrooms: "2",
-            price: "1500000",
-            currency: "CNY",
-            amenities: ['WiFi', 'Parking', 'Security'],
-            images: ["/images/properties/property-1.jpg"],
-            propertyType: "apartment"
-          },
-          {
-            id: "2",
-            title: "Modern Villa in Shanghai",
-            location: "Shanghai, China",
-            bedrooms: "4",
-            bathrooms: "3",
-            price: "2500000",
-            currency: "CNY",
-            amenities: ['WiFi', 'Parking', 'Pool'],
-            images: ["/images/properties/property-2.jpg"],
-            propertyType: "house"
-          }
-        ];
+      if (!allProperties || allProperties.length === 0) {
+        console.log('Property data not available, generating default properties');
+        return NextResponse.json({
+          properties: [
+            {
+              id: "1",
+              title: "Luxury Apartment in Beijing",
+              location: "Beijing, China",
+              bedrooms: "3",
+              bathrooms: "2",
+              price: "1500000",
+              currency: "CNY",
+              amenities: ['WiFi', 'Parking', 'Security'],
+              images: ["/images/properties/property-1.jpg"],
+              propertyType: "apartment"
+            },
+            {
+              id: "2",
+              title: "Modern Villa in Shanghai",
+              location: "Shanghai, China",
+              bedrooms: "4",
+              bathrooms: "3",
+              price: "2500000",
+              currency: "CNY",
+              amenities: ['WiFi', 'Parking', 'Pool'],
+              images: ["/images/properties/property-2.jpg"],
+              propertyType: "house"
+            }
+          ],
+          totalCount: 2,
+          totalPages: 1,
+          currentPage: 1
+        });
       }
 
-      console.log(`Properties API: Starting with ${properties.length} properties`);
+      console.log(`Direct Properties API: Starting with ${allProperties.length} properties`);
 
       // Create a copy of the properties array to avoid modifying the original
-      let filteredProperties = [...properties];
+      let filteredProperties = [...allProperties];
 
       // Apply filters
       if (location) {
@@ -145,7 +122,7 @@ export const GET = createGetHandler(
       // Apply pagination
       const paginatedProperties = filteredProperties.slice(offset, offset + limit);
 
-      console.log(`Properties API: Returning ${paginatedProperties.length} properties out of ${totalCount} total (page ${page} of ${totalPages})`);
+      console.log(`Direct Properties API: Returning ${paginatedProperties.length} properties out of ${totalCount} total (page ${page} of ${totalPages})`);
 
       // Return the response
       return NextResponse.json({
@@ -155,7 +132,7 @@ export const GET = createGetHandler(
         currentPage: page
       });
     } catch (error: any) {
-      console.error('Error in properties API:', error);
+      console.error('Error in direct properties API:', error);
 
       // Return minimal fallback data in case of error
       return NextResponse.json({
@@ -192,4 +169,4 @@ export const GET = createGetHandler(
       });
     }
   }
-)
+);

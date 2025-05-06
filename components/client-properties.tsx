@@ -49,8 +49,64 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
   const bathrooms = searchParams.get('bathrooms') || '';
   const propertyType = searchParams.get('propertyType') || '';
 
-  // Function to fetch properties
-  const fetchProperties = async (page: number = 1) => {
+  // Helper function to fetch from API with fallback
+  const fetchFromApi = async (queryParams: URLSearchParams, cacheBuster: string) => {
+    const apiUrl = `/api/properties?${queryParams.toString()}&${cacheBuster}`;
+    console.log(`API URL: ${apiUrl}`);
+
+    // Fetch with timeout to avoid hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    try {
+      const apiResponse = await fetch(apiUrl, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!apiResponse.ok) {
+        throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
+      }
+
+      const data = await apiResponse.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching from primary API, trying direct API:', error);
+
+      // Try the direct API endpoint as a fallback
+      const directApiUrl = `/api/properties/direct?${queryParams.toString()}&${cacheBuster}`;
+      console.log(`Trying direct API URL: ${directApiUrl}`);
+
+      const directController = new AbortController();
+      const directTimeoutId = setTimeout(() => directController.abort(), 10000);
+
+      const directResponse = await fetch(directApiUrl, {
+        signal: directController.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+
+      clearTimeout(directTimeoutId);
+
+      if (!directResponse.ok) {
+        throw new Error(`Direct API returned ${directResponse.status}: ${directResponse.statusText}`);
+      }
+
+      const directData = await directResponse.json();
+      console.log('Successfully fetched from direct API');
+      return directData;
+    }
+  };
+
+  // Function to fetch properties with retry mechanism
+  const fetchProperties = async (page: number = 1, retryCount: number = 0) => {
     setLoading(true);
     setError(null);
 
@@ -66,57 +122,81 @@ export function ClientProperties({ initialData }: ClientPropertiesProps) {
       if (bathrooms) queryParams.set('bathrooms', bathrooms);
       if (propertyType) queryParams.set('propertyType', propertyType);
 
-      // Skip static JSON and go straight to API
+      console.log(`Fetching properties with params: ${queryParams.toString()}`);
 
-      // If static JSON fails, try the API
-      const apiResponse = await fetch(`/api/properties?${queryParams.toString()}`);
+      // Add cache-busting parameter to avoid stale data
+      const cacheBuster = `cacheBust=${Date.now()}`;
 
-      if (!apiResponse.ok) {
-        throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
+      // Fetch data from API (will try both endpoints)
+      const data = await fetchFromApi(queryParams, cacheBuster);
+
+      // Validate the response data
+      if (!data || !Array.isArray(data.properties)) {
+        console.error('Invalid API response format:', data);
+        throw new Error('Invalid API response format');
       }
 
-      const data = await apiResponse.json();
-
       setProperties(data.properties);
-      setTotalCount(data.totalCount);
-      setTotalPages(data.totalPages);
+      setTotalCount(data.totalCount || data.properties.length);
+      setTotalPages(data.totalPages || Math.ceil(data.properties.length / 12));
       setCurrentPage(page);
 
       console.log(`Loaded ${data.properties.length} properties from API`);
     } catch (err: any) {
-      console.error('Error fetching properties:', err);
-      setError(err.message || 'Failed to fetch properties');
+      console.error(`Error fetching properties (attempt ${retryCount + 1}):`, err);
 
-      // If all else fails, use demo data
-      setProperties([
-        {
-          id: "1",
-          title: "Luxury Apartment in Beijing",
-          location: "Beijing, China",
-          bedrooms: "3",
-          bathrooms: "2",
-          price: "1500000",
-          currency: "CNY",
-          amenities: ['WiFi', 'Parking', 'Security'],
-          images: ["/images/properties/property-1.jpg"],
-          propertyType: "apartment"
-        },
-        {
-          id: "2",
-          title: "Modern Villa in Shanghai",
-          location: "Shanghai, China",
-          bedrooms: "4",
-          bathrooms: "3",
-          price: "2500000",
-          currency: "CNY",
-          amenities: ['WiFi', 'Parking', 'Pool'],
-          images: ["/images/properties/property-2.jpg"],
-          propertyType: "house"
-        }
-      ]);
-      setTotalCount(2);
-      setTotalPages(1);
-      setCurrentPage(1);
+      // Retry logic - try up to 2 more times with exponential backoff
+      if (retryCount < 2) {
+        console.log(`Retrying fetch (attempt ${retryCount + 2})...`);
+        setTimeout(() => {
+          fetchProperties(page, retryCount + 1);
+        }, 1000 * Math.pow(2, retryCount)); // 1s, 2s, 4s backoff
+        return;
+      }
+
+      setError(err.message || 'Failed to fetch properties');
+      console.log('All retry attempts failed, using fallback data');
+
+      // If we have initial data, use that instead of the demo data
+      if (initialData?.properties && initialData.properties.length > 0) {
+        console.log('Using initial data as fallback');
+        setProperties(initialData.properties);
+        setTotalCount(initialData.totalCount);
+        setTotalPages(initialData.totalPages);
+        setCurrentPage(initialData.currentPage);
+      } else {
+        // If all else fails, use demo data
+        console.log('Using demo data as fallback');
+        setProperties([
+          {
+            id: "1",
+            title: "Luxury Apartment in Beijing",
+            location: "Beijing, China",
+            bedrooms: "3",
+            bathrooms: "2",
+            price: "1500000",
+            currency: "CNY",
+            amenities: ['WiFi', 'Parking', 'Security'],
+            images: ["/images/properties/property-1.jpg"],
+            propertyType: "apartment"
+          },
+          {
+            id: "2",
+            title: "Modern Villa in Shanghai",
+            location: "Shanghai, China",
+            bedrooms: "4",
+            bathrooms: "3",
+            price: "2500000",
+            currency: "CNY",
+            amenities: ['WiFi', 'Parking', 'Pool'],
+            images: ["/images/properties/property-2.jpg"],
+            propertyType: "house"
+          }
+        ]);
+        setTotalCount(2);
+        setTotalPages(1);
+        setCurrentPage(1);
+      }
     } finally {
       setLoading(false);
     }
